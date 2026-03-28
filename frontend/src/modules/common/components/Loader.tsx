@@ -29,10 +29,10 @@ export const Loader: React.FC<LoaderProps> = ({ size = 'md', className = '' }) =
 // Full page loader
 export const PageLoader: React.FC = () => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white/80 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-50">
       <div className="flex flex-col items-center gap-4">
         <Loader size="lg" />
-        <p className="text-gray-600">Loading...</p>
+        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
       </div>
     </div>
   );
@@ -41,20 +41,20 @@ export const PageLoader: React.FC = () => {
 // Skeleton loader for job cards
 export const JobCardSkeleton: React.FC = () => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 animate-pulse">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <div className="h-6 bg-gray-200 rounded w-3/4 mb-2" />
-          <div className="h-4 bg-gray-200 rounded w-1/2" />
+          <div className="h-6 bg-gray-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
+          <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/2" />
         </div>
-        <div className="h-8 w-16 bg-gray-200 rounded" />
+        <div className="h-8 w-16 bg-gray-200 dark:bg-slate-700 rounded" />
       </div>
-      <div className="h-4 bg-gray-200 rounded w-full mb-2" />
-      <div className="h-4 bg-gray-200 rounded w-5/6 mb-4" />
+      <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-full mb-2" />
+      <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-5/6 mb-4" />
       <div className="flex gap-2">
-        <div className="h-6 w-16 bg-gray-200 rounded" />
-        <div className="h-6 w-20 bg-gray-200 rounded" />
-        <div className="h-6 w-14 bg-gray-200 rounded" />
+        <div className="h-6 w-16 bg-gray-200 dark:bg-slate-700 rounded" />
+        <div className="h-6 w-20 bg-gray-200 dark:bg-slate-700 rounded" />
+        <div className="h-6 w-14 bg-gray-200 dark:bg-slate-700 rounded" />
       </div>
     </div>
   );

@@ -72,13 +72,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
+      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-slate-800 dark:via-slate-900 dark:to-indigo-950 text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Find Your Next Career Move
             </h1>
-            <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto mb-8">
+            <p className="text-blue-100 dark:text-slate-300 text-lg md:text-xl max-w-2xl mx-auto mb-8">
               Discover opportunities matched to your skills with our intelligent job scoring algorithm
             </p>
             
@@ -93,21 +93,21 @@ export default function HomePage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 -mt-16">
-          <div className="bg-white rounded-xl shadow-lg p-4 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-blue-600">{totalJobs}</p>
-            <p className="text-sm text-gray-500">Total Jobs</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{totalJobs}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total Jobs</p>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-4 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-emerald-600">{jobs.length}</p>
-            <p className="text-sm text-gray-500">Showing</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+            <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{jobs.length}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Showing</p>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-4 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-purple-600">{currentPage}</p>
-            <p className="text-sm text-gray-500">Current Page</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{currentPage}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Current Page</p>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-4 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-amber-600">{totalPages}</p>
-            <p className="text-sm text-gray-500">Total Pages</p>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+            <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{totalPages}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total Pages</p>
           </div>
         </div>
 
@@ -118,25 +118,25 @@ export default function HomePage() {
 
         {/* Error State */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-red-700">{error}</p>
+            <p className="text-red-700 dark:text-red-300">{error}</p>
           </div>
         )}
 
         {/* Results Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
             Job Listings
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {loading ? 'Loading...' : `Sorted by score`}
           </p>
         </div>

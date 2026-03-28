@@ -21,9 +21,9 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   return (
     <div className={`flex flex-col items-center justify-center p-8 text-center ${className}`}>
       {/* Error Icon */}
-      <div className="w-16 h-16 mb-4 rounded-full bg-red-100 flex items-center justify-center">
+      <div className="w-16 h-16 mb-4 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
         <svg
-          className="w-8 h-8 text-red-500"
+          className="w-8 h-8 text-red-500 dark:text-red-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -38,16 +38,16 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       </div>
 
       {/* Error Title */}
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
 
       {/* Error Message */}
-      <p className="text-gray-600 mb-6 max-w-md">{message}</p>
+      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">{message}</p>
 
       {/* Retry Button */}
       {onRetry && (
         <button
           onClick={onRetry}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
         >
           Try Again
         </button>
@@ -69,9 +69,9 @@ export const EmptyState: React.FC<{
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       {/* Empty Icon */}
-      <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+      <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
         <svg
-          className="w-8 h-8 text-gray-400"
+          className="w-8 h-8 text-gray-400 dark:text-gray-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -85,8 +85,8 @@ export const EmptyState: React.FC<{
         </svg>
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-6">{message}</p>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-6">{message}</p>
 
       {action && (
         <button

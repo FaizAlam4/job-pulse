@@ -63,7 +63,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         onChange={handleChange}
         placeholder={placeholder}
         suppressHydrationWarning
-        className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-500"
+        className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white bg-white dark:bg-slate-800 placeholder-gray-500 dark:placeholder-gray-400"
       />
 
       {/* Clear Button */}

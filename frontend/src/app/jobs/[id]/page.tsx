@@ -88,7 +88,7 @@ export default function JobDetailPage() {
   const relevancePercent = toPercentage(job.relevanceScore || 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       {/* Header with gradient */}
       <div className={`bg-gradient-to-br ${getScoreGradient(scorePercent)} text-white`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -130,14 +130,14 @@ export default function JobDetailPage() {
             </div>
 
             {/* Score Badge */}
-            <div className="bg-white rounded-2xl p-6 text-center shadow-xl min-w-[160px]">
-              <p className="text-5xl font-bold text-gray-900">{scorePercent}%</p>
-              <p className="text-sm font-medium text-gray-500 mt-1">Match Score</p>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 text-center shadow-xl min-w-[160px]">
+              <p className="text-5xl font-bold text-gray-900 dark:text-white">{scorePercent}%</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">Match Score</p>
               <div className="mt-3 flex justify-center gap-1">
                 {[1,2,3,4,5].map((star) => (
                   <svg 
                     key={star} 
-                    className={`w-4 h-4 ${star <= Math.ceil(scorePercent / 20) ? 'text-yellow-400' : 'text-gray-200'}`} 
+                    className={`w-4 h-4 ${star <= Math.ceil(scorePercent / 20) ? 'text-yellow-400' : 'text-gray-200 dark:text-gray-600'}`} 
                     fill="currentColor" 
                     viewBox="0 0 20 20"
                   >
@@ -155,21 +155,21 @@ export default function JobDetailPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Description */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Job Description
               </h2>
-              <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed">
+              <div className="prose prose-sm max-w-none text-gray-600 dark:text-gray-300 leading-relaxed">
                 {job.description ? (
                   // If job.description contains HTML, render it as HTML. If not, render as plain text.
                   // WARNING: Only use dangerouslySetInnerHTML if the HTML is trusted or sanitized to prevent XSS.
-                  <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: job.description }} />
+                  <div className="job-description whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: job.description }} />
                 ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+                    <svg className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <p className="italic">No description available</p>
@@ -180,9 +180,9 @@ export default function JobDetailPage() {
             </div>
 
             {/* Score Breakdown */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-500 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 Score Breakdown
@@ -190,28 +190,28 @@ export default function JobDetailPage() {
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">Overall Score</span>
-                    <span className="text-sm font-medium text-gray-900">{scorePercent}%</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Overall Score</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{scorePercent}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                     <div className={`h-2 rounded-full bg-gradient-to-r ${getScoreGradient(scorePercent)}`} style={{ width: `${scorePercent}%` }}></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">Freshness Score</span>
-                    <span className="text-sm font-medium text-gray-900">{freshnessPercent}%</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Freshness Score</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{freshnessPercent}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                     <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-600" style={{ width: `${freshnessPercent}%` }}></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm text-gray-600">Relevance Score</span>
-                    <span className="text-sm font-medium text-gray-900">{relevancePercent}%</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Relevance Score</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{relevancePercent}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                     <div className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600" style={{ width: `${relevancePercent}%` }}></div>
                   </div>
                 </div>
@@ -220,9 +220,9 @@ export default function JobDetailPage() {
 
             {/* Skills */}
             {job.skills && job.skills.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                   Required Skills
@@ -231,7 +231,7 @@ export default function JobDetailPage() {
                   {job.skills.map((skill: string, index: number) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
+                      className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/50 dark:to-indigo-900/50 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium border border-blue-100 dark:border-blue-800"
                     >
                       {skill}
                     </span>
@@ -242,9 +242,9 @@ export default function JobDetailPage() {
 
             {/* Similar Jobs */}
             {similarJobs && similarJobs.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   Similar Jobs
@@ -256,13 +256,13 @@ export default function JobDetailPage() {
                       <Link 
                         key={similarJob._id} 
                         href={`/jobs/${similarJob._id}`}
-                        className="block p-4 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all"
+                        className="block p-4 rounded-lg border border-gray-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-700 hover:bg-blue-50/50 dark:hover:bg-slate-700/50 transition-all"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 truncate">{similarJob.title}</h3>
-                            <p className="text-sm text-gray-600">{similarJob.company}</p>
-                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                            <h3 className="font-medium text-gray-900 dark:text-white truncate">{similarJob.title}</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{similarJob.company}</p>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-500">
                               <span className="flex items-center gap-1">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -287,7 +287,7 @@ export default function JobDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Apply Card */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
               {job.sourceUrl ? (
                 <a
                   href={job.sourceUrl}
@@ -302,18 +302,18 @@ export default function JobDetailPage() {
                 </a>
               ) : (
                 <div className="text-center">
-                  <div className="w-full bg-gray-100 text-gray-500 px-4 py-3 rounded-xl font-medium mb-2">
+                  <div className="w-full bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 px-4 py-3 rounded-xl font-medium mb-2">
                     External Link Not Available
                   </div>
-                  <p className="text-xs text-gray-400">Search for "{job.title}" on job boards</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Search for "{job.title}" on job boards</p>
                 </div>
               )}
             </div>
 
             {/* Job Details */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Job Details
@@ -321,65 +321,65 @@ export default function JobDetailPage() {
               <div className="space-y-4">
                 {job.salary && (
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Salary</p>
-                      <p className="text-sm font-medium text-gray-900">{job.salary}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Salary</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{job.salary}</p>
                     </div>
                   </div>
                 )}
                 
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Source</p>
-                    <p className="text-sm font-medium text-gray-900 capitalize">{job.source?.replace('-', ' ')}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Source</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">{job.source?.replace('-', ' ')}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Posted</p>
-                    <p className="text-sm font-medium text-gray-900">{formatDistanceToNow(job.postedAt)}</p>
-                    <p className="text-xs text-gray-400">{formatDate(job.postedAt)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Posted</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{formatDistanceToNow(job.postedAt)}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(job.postedAt)}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Added to JobPulse</p>
-                    <p className="text-sm font-medium text-gray-900">{formatDate(job.createdAt)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Added to JobPulse</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{formatDate(job.createdAt)}</p>
                   </div>
                 </div>
 
                 {job.hash && (
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Job ID</p>
-                      <p className="text-xs font-mono text-gray-500 truncate max-w-[150px]" title={job.hash}>{job.hash.substring(0, 12)}...</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Job ID</p>
+                      <p className="text-xs font-mono text-gray-500 dark:text-gray-500 truncate max-w-[150px]" title={job.hash}>{job.hash.substring(0, 12)}...</p>
                     </div>
                   </div>
                 )}
@@ -387,15 +387,15 @@ export default function JobDetailPage() {
             </div>
 
             {/* Status */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Status
               </h2>
               <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${job.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${job.isActive !== false ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400'}`}>
                   <span className={`w-2 h-2 rounded-full ${job.isActive !== false ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                   {job.isActive !== false ? 'Active' : 'Archived'}
                 </span>
