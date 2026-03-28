@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": ["debug/*", "debug/**", "*.json"],
+  "delay": "2500"
+}
