@@ -38,6 +38,9 @@ export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  // Import resetFilters action
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { resetFilters } = require('@/modules/filters/store/filtersSlice');
   
   const job = useAppSelector(selectCurrentJob);
   const similarJobs = useAppSelector(selectSimilarJobs);
@@ -90,15 +93,19 @@ export default function JobDetailPage() {
       <div className={`bg-gradient-to-br ${getScoreGradient(scorePercent)} text-white`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back Button */}
-          <Link
-            href="/"
+          <button
+            type="button"
+            onClick={() => {
+              dispatch(resetFilters());
+              router.push('/');
+            }}
             className="inline-flex items-center text-sm text-white/80 hover:text-white mb-6 transition-colors"
           >
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Jobs
-          </Link>
+          </button>
 
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
             <div className="flex-1">
@@ -157,7 +164,9 @@ export default function JobDetailPage() {
               </h2>
               <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed">
                 {job.description ? (
-                  <p className="whitespace-pre-wrap">{job.description}</p>
+                  // If job.description contains HTML, render it as HTML. If not, render as plain text.
+                  // WARNING: Only use dangerouslySetInnerHTML if the HTML is trusted or sanitized to prevent XSS.
+                  <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: job.description }} />
                 ) : (
                   <div className="text-center py-8 text-gray-400">
                     <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

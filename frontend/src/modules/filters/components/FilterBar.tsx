@@ -81,16 +81,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
   }, [onApplyFilters]);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-      <div className="flex flex-wrap items-center gap-4 mb-4">
+    <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-lg p-6 mb-8 border border-blue-100">
+      <div className="flex flex-wrap items-center gap-6 mb-6">
         {/* Country Filter */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+          <label className="block text-sm font-semibold text-blue-700 mb-2">Country</label>
           <select
             value={country}
             onChange={handleCountryChange}
             suppressHydrationWarning
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+            className="w-full px-4 py-2 border-2 border-blue-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 bg-white shadow-sm transition-all"
           >
             <option value="">All Countries</option>
             {FILTER_OPTIONS.COUNTRIES.map((c) => (
@@ -101,12 +101,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
 
         {/* Time Period Filter */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Posted Within</label>
+          <label className="block text-sm font-semibold text-blue-700 mb-2">Posted Within</label>
           <select
             value={postedWithinHours ?? ''}
             onChange={handleTimeChange}
             suppressHydrationWarning
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+            className="w-full px-4 py-2 border-2 border-blue-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 bg-white shadow-sm transition-all"
           >
             <option value="">Any Time</option>
             {FILTER_OPTIONS.TIME_PERIODS.map((period) => (
@@ -117,12 +117,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
 
         {/* Sort */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+          <label className="block text-sm font-semibold text-blue-700 mb-2">Sort By</label>
           <select
             value={`${sortBy}-${order}`}
             onChange={handleSortChange}
             suppressHydrationWarning
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+            className="w-full px-4 py-2 border-2 border-blue-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 bg-white shadow-sm transition-all"
           >
             {FILTER_OPTIONS.SORT_OPTIONS.map((opt) => (
               <option key={`${opt.value}-${opt.order}`} value={`${opt.value}-${opt.order}`}>
@@ -133,25 +133,27 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
         </div>
 
         {/* Remote Toggle */}
-        <div className="flex items-center pt-6">
-          <label className="flex items-center cursor-pointer">
+        <div className="flex items-center pt-8">
+          <label className="flex items-center cursor-pointer select-none">
             <input
               type="checkbox"
               checked={remote}
               onChange={handleRemoteToggle}
               suppressHydrationWarning
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-5 h-5 text-blue-600 border-blue-300 rounded-lg focus:ring-blue-400 transition-all shadow-sm"
             />
-            <span className="ml-2 text-sm text-gray-700">Remote Only</span>
+            <span className="ml-3 text-base text-blue-700 font-medium">Remote Only</span>
           </label>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600">
+      <div className="flex items-center justify-between mt-2">
+        <div className="text-sm text-blue-700 font-semibold">
           {filterCount > 0 && (
-            <span>{filterCount} filter{filterCount > 1 ? 's' : ''} active</span>
+            <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full shadow-sm animate-fade-in">
+              {filterCount} filter{filterCount > 1 ? 's' : ''} active
+            </span>
           )}
         </div>
         <div className="flex gap-2">
@@ -159,18 +161,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
             <button
               onClick={handleReset}
               suppressHydrationWarning
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-semibold shadow-md hover:from-blue-600 hover:to-indigo-600 transition-all"
             >
               Reset
             </button>
           )}
-          <button
-            onClick={handleApply}
-            suppressHydrationWarning
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Apply Filters
-          </button>
         </div>
       </div>
     </div>

@@ -81,9 +81,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default' }) =>
 
         {/* Description Preview */}
         {job.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-            {job.description}
-          </p>
+          // If job.description contains HTML, render it as HTML. If not, render as plain text.
+          // WARNING: Only use dangerouslySetInnerHTML if the HTML is trusted or sanitized to prevent XSS.
+          <p
+            className="text-gray-600 text-sm mb-4 line-clamp-2"
+            dangerouslySetInnerHTML={{ __html: job.description }}
+          />
         )}
 
         {/* Skills */}
