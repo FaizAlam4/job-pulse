@@ -62,39 +62,83 @@ export const runJobIngestionPipeline = async (options = {}) => {
     summary.fetched = rawJobs.length;
     console.log(`✓ Step 1 complete: ${rawJobs.length} raw jobs fetched\n`);
 
+    // Save fetched jobs to JSON for offline use
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const outPath = path.resolve(process.cwd(), 'backend/scripts/last_ingested_jobs.json');
+      fs.writeFileSync(outPath, JSON.stringify({ jobs: rawJobs }, null, 2), 'utf-8');
+      console.log(`📝 Saved fetched jobs to ${outPath}`);
+    } catch (fileErr) {
+      console.warn('⚠ Could not save fetched jobs to JSON:', fileErr.message);
+    }
+
     // Step 2: Deduplicate
     console.log('Step 2: Deduplicating...');
-    const dedupJobs = await deduplicateJobs(rawJobs);
-    summary.deduplicated = dedupJobs.length;
-    console.log(`✓ Step 2 complete: ${dedupJobs.length} jobs after dedup\n`);
+    const { newJobs, existingJobs } = await deduplicateJobs(rawJobs);
+    summary.deduplicated = rawJobs.length;
+    console.log(`✓ Step 2 complete: ${newJobs.length} new + ${existingJobs.length} updates\n`);
 
     // Step 3: Save to database
     console.log('Step 3: Saving to database...');
-    if (dedupJobs.length > 0) {
+    
+    // Save new jobs
+    if (newJobs.length > 0) {
       try {
-        // Save jobs one by one using Job.create()
-        console.log(`💾 Saving ${dedupJobs.length} jobs...`);
-        for (let i = 0; i < dedupJobs.length; i++) {
-          const job = dedupJobs[i];
+        console.log(`💾 Saving ${newJobs.length} new jobs...`);
+        for (let i = 0; i < newJobs.length; i++) {
+          const job = newJobs[i];
           try {
             await Job.create(job);
             summary.saved++;
-            console.log(`   ✅ ${i + 1}/${dedupJobs.length}: ${job.title}`);
+            console.log(`   ✅ ${i + 1}/${newJobs.length}: ${job.title}`);
           } catch (jobError) {
-            console.error(`   ❌ ${i + 1}/${dedupJobs.length}: ${job.title}`);
+            console.error(`   ❌ ${i + 1}/${newJobs.length}: ${job.title}`);
             console.error(`      ${jobError.message}`);
           }
         }
-        console.log(`\n✅ Save complete: ${summary.saved}/${dedupJobs.length} jobs saved`);
+        console.log(`\n✅ New jobs saved: ${summary.saved}/${newJobs.length}`);
       } catch (error) {
         console.error(`\n❌ SAVE ERROR:`);
         console.error(`   Name: ${error.name}`);
         console.error(`   Message: ${error.message}`);
-        console.error(`   Stack:`, error.stack);
         summary.error = error.message;
       }
     }
-    console.log(`✓ Step 3 complete: ${summary.saved} jobs saved\n`);
+
+    // Update existing jobs
+    if (existingJobs.length > 0) {
+      try {
+        console.log(`🔄 Updating ${existingJobs.length} existing jobs...`);
+        for (let i = 0; i < existingJobs.length; i++) {
+          const { id, data, hash } = existingJobs[i];
+          try {
+            const updatedJob = await Job.findByIdAndUpdate(
+              id,
+              {
+                ...data,
+                hash, // Ensure hash is preserved
+                fetchedAt: new Date(), // Update fetch timestamp
+              },
+              { new: true, runValidators: true }
+            );
+            summary.saved++;
+            console.log(`   🔄 ${i + 1}/${existingJobs.length}: ${data.title} (updated)`);
+          } catch (jobError) {
+            console.error(`   ❌ ${i + 1}/${existingJobs.length}: ${data.title}`);
+            console.error(`      ${jobError.message}`);
+          }
+        }
+        console.log(`\n✅ Existing jobs updated: ${summary.saved - newJobs.length}/${existingJobs.length}`);
+      } catch (error) {
+        console.error(`\n❌ UPDATE ERROR:`);
+        console.error(`   Name: ${error.name}`);
+        console.error(`   Message: ${error.message}`);
+        summary.error = error.message;
+      }
+    }
+
+    console.log(`✓ Step 3 complete: ${summary.saved} total operations (new + updates)\n`);
 
     // Step 4: Score all jobs
     console.log('Step 4: Scoring jobs...');

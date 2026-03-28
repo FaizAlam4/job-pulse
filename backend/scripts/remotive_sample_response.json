@@ -1,0 +1,19 @@
+{
+  "jobs": [
+    {
+      "id": 123456,
+      "url": "https://remotive.com/remote-jobs/software-dev/backend-developer-123456",
+      "title": "Backend Developer",
+      "company_name": "Example Corp",
+      "category": "Software Development",
+      "job_type": "Full-Time",
+      "publication_date": "2026-03-28T12:00:00+00:00",
+      "candidate_required_location": "Worldwide",
+      "salary": "$80,000 - $120,000",
+      "description": "We are looking for a Backend Developer...",
+      "tags": ["Node.js", "API", "Remote"],
+      "company_logo_url": "https://remotive.com/logo.png",
+      "published_at": "2026-03-28T12:00:00+00:00"
+    }
+  ]
+}

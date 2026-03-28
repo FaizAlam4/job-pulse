@@ -3,7 +3,7 @@
  * Redux-Saga for handling async job operations
  */
 
-import { call, put, takeLatest, all, select } from 'redux-saga/effects';
+import { call, put, takeLatest, all } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import jobsService from '../services/jobsService';
 import {
@@ -23,7 +23,6 @@ import {
   searchJobsSuccess,
   searchJobsFailure,
 } from './jobsSlice';
-import { selectFilters } from './jobsSelectors';
 import { JobFilters, JobsResponse, JobDetailResponse, TopJobsResponse, JobStatsResponse, SearchParams } from '../types';
 
 /**
@@ -31,9 +30,10 @@ import { JobFilters, JobsResponse, JobDetailResponse, TopJobsResponse, JobStatsR
  */
 function* fetchJobsSaga(action: PayloadAction<JobFilters | undefined>) {
   try {
-    // Get current filters from state and merge with action payload
-    const currentFilters: JobFilters = yield select(selectFilters);
-    const filters = { ...currentFilters, ...action.payload };
+    // Use filters directly from action payload (comes from selectActiveFilters)
+    // Don't merge with old state.jobs.filters to avoid stale values
+    const defaultFilters: JobFilters = { page: 1, limit: 20, sortBy: 'score', order: 'desc' };
+    const filters = { ...defaultFilters, ...action.payload };
     
     const response: JobsResponse = yield call(jobsService.getJobs, filters);
     

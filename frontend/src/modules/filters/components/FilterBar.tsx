@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/modules/common/hooks/useRedux';
 import {
   setCountry,
@@ -13,8 +13,6 @@ import {
   setPostedWithinHours,
   setSort,
   resetFilters,
-  addSkill,
-  removeSkill,
 } from '@/modules/filters/store';
 import {
   selectCountry,
@@ -22,7 +20,6 @@ import {
   selectPostedWithinHours,
   selectSortBy,
   selectOrder,
-  selectSkills,
   selectHasActiveFilters,
   selectActiveFilterCount,
 } from '@/modules/filters/store/filtersSelectors';
@@ -35,32 +32,31 @@ interface FilterBarProps {
 export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
   const dispatch = useAppDispatch();
   
-  // Local state
-  const [skillInput, setSkillInput] = useState('');
-  
   // Redux state
   const country = useAppSelector(selectCountry);
   const remote = useAppSelector(selectRemote);
   const postedWithinHours = useAppSelector(selectPostedWithinHours);
   const sortBy = useAppSelector(selectSortBy);
   const order = useAppSelector(selectOrder);
-  const skills = useAppSelector(selectSkills);
   const hasActiveFilters = useAppSelector(selectHasActiveFilters);
   const filterCount = useAppSelector(selectActiveFilterCount);
 
   // Handlers
   const handleCountryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     dispatch(setCountry(e.target.value));
-  }, [dispatch]);
+    setTimeout(() => onApplyFilters(), 0);
+  }, [dispatch, onApplyFilters]);
 
   const handleRemoteToggle = useCallback(() => {
     dispatch(setRemote(!remote));
-  }, [dispatch, remote]);
+    setTimeout(() => onApplyFilters(), 0);
+  }, [dispatch, remote, onApplyFilters]);
 
   const handleTimeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value ? parseInt(e.target.value) : null;
     dispatch(setPostedWithinHours(value));
-  }, [dispatch]);
+    setTimeout(() => onApplyFilters(), 0);
+  }, [dispatch, onApplyFilters]);
 
   const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
@@ -70,23 +66,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
         sortBy: sortOption.value as 'score' | 'postedAt' | 'company', 
         order: sortOption.order as 'asc' | 'desc' 
       }));
+      setTimeout(() => onApplyFilters(), 0);
     }
-  }, [dispatch]);
-
-  const handleAddSkill = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && skillInput.trim()) {
-      dispatch(addSkill(skillInput.trim()));
-      setSkillInput('');
-    }
-  }, [dispatch, skillInput]);
-
-  const handleRemoveSkill = useCallback((skill: string) => {
-    dispatch(removeSkill(skill));
-  }, [dispatch]);
+  }, [dispatch, onApplyFilters]);
 
   const handleReset = useCallback(() => {
     dispatch(resetFilters());
-  }, [dispatch]);
+    // Apply filters after reset to refresh the list - use slightly longer timeout to ensure state updates
+    setTimeout(() => onApplyFilters(), 10);
+  }, [dispatch, onApplyFilters]);
 
   const handleApply = useCallback(() => {
     onApplyFilters();
@@ -157,39 +145,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
             <span className="ml-2 text-sm text-gray-700">Remote Only</span>
           </label>
         </div>
-      </div>
-
-      {/* Skills Filter */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
-        <input
-          type="text"
-          value={skillInput}
-          onChange={(e) => setSkillInput(e.target.value)}
-          onKeyDown={handleAddSkill}
-          placeholder="Type a skill and press Enter..."
-          suppressHydrationWarning
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-500"
-        />
-        {skills.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {skills.map((skill: string) => (
-              <span
-                key={skill}
-                className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
-              >
-                {skill}
-                <button
-                  onClick={() => handleRemoveSkill(skill)}
-                  suppressHydrationWarning
-                  className="ml-2 text-blue-500 hover:text-blue-700"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Action Buttons */}

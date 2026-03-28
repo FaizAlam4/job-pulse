@@ -10,6 +10,7 @@ import {
   debugIngestFromFile,
   debugDeleteAllJobs,
 } from '../controllers/jobController.js';
+import { apiKeyAuth } from '../middleware/apiKeyAuth.js';
 
 /**
  * Register all job routes
@@ -31,8 +32,8 @@ export const registerJobRoutes = async (fastify) => {
   // Get single job by ID (must be after other /jobs/* routes)
   fastify.get('/jobs/:id', getJobById);
 
-  // Admin: Trigger ingestion pipeline
-  fastify.post('/admin/ingest', triggerIngestion);
+  // Admin: Trigger ingestion pipeline (protected by API key)
+  fastify.post('/admin/ingest', { preHandler: apiKeyAuth }, triggerIngestion);
 
   // Admin: Re-score all jobs
   fastify.post('/admin/rescore', resendAllJobs);

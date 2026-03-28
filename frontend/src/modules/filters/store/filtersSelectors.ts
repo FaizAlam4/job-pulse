@@ -23,38 +23,45 @@ export const selectIsFilterPanelOpen = (state: RootState) => state.filters.isFil
 
 // Computed selectors
 export const selectHasActiveFilters = (state: RootState): boolean => {
-  const { location, country, state: stateName, city, remote, skills, postedWithinHours } = state.filters;
-  return !!(location || country || stateName || city || remote || skills.length > 0 || postedWithinHours);
+  const { location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
+  // Check if any filter differs from default
+  const hasLocationFilters = !!(location || country || stateName || city);
+  const hasOtherFilters = remote || postedWithinHours !== null;
+  const hasSortChanged = sortBy !== 'score' || order !== 'desc';
+  return hasLocationFilters || hasOtherFilters || hasSortChanged;
 };
 
 export const selectActiveFilterCount = (state: RootState): number => {
-  const { location, country, state: stateName, city, remote, skills, postedWithinHours } = state.filters;
+  const { location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
   let count = 0;
   if (location) count++;
   if (country) count++;
   if (stateName) count++;
   if (city) count++;
   if (remote) count++;
-  if (skills.length > 0) count++;
-  if (postedWithinHours) count++;
+  if (postedWithinHours !== null) count++;
+  if (sortBy !== 'score' || order !== 'desc') count++;
   return count;
 };
 
 // Convert filter state to API params
 export const selectApiFilters = (state: RootState): JobFilters => {
-  const { location, country, state: stateName, city, remote, skills, postedWithinHours, sortBy, order } = state.filters;
+  const { location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
   
   const filters: JobFilters = {
     sortBy,
     order,
   };
 
+  // Always include these fields (even if empty) so they can override cached values
   if (location) filters.location = location;
-  if (country) filters.country = country;
+  if (country) {
+    filters.country = country;
+  }
+  // For state/city, only include if set
   if (stateName) filters.state = stateName;
   if (city) filters.city = city;
   if (remote) filters.remote = true;
-  if (skills.length > 0) filters.skills = skills.join(',');
   if (postedWithinHours) filters.postedWithinHours = postedWithinHours;
 
   return filters;

@@ -45,7 +45,12 @@ export const selectJobsError = (state: RootState) => state.jobs.error;
 
 // Computed selectors
 export const selectJobCount = (state: RootState) => state.jobs.jobs.length;
-export const selectTotalJobCount = (state: RootState) => state.jobs.pagination?.totalJobs ?? 0;
+export const selectTotalJobCount = (state: RootState) => {
+	const pag = state.jobs.pagination;
+	if (!pag) return 0;
+	// Support both totalJobs and totalCount for backend compatibility
+	return pag.totalJobs ?? pag.totalCount ?? 0;
+};
 export const selectHasNextPage = (state: RootState) => state.jobs.pagination?.hasNextPage ?? false;
 export const selectHasPrevPage = (state: RootState) => state.jobs.pagination?.hasPrevPage ?? false;
 export const selectCurrentPage = (state: RootState) => state.jobs.pagination?.currentPage ?? 1;

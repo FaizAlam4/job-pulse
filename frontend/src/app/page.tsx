@@ -22,16 +22,19 @@ import { JobList } from '@/modules/jobs/components/JobList';
 import { FilterBar } from '@/modules/filters/components/FilterBar';
 import { SearchBar } from '@/modules/common/components/SearchBar';
 import { setSearchQuery } from '@/modules/filters/store/filtersSlice';
+import { useStore } from 'react-redux';
+import { RootState } from '@/store';
 
 export default function HomePage() {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const jobs = useAppSelector(selectAllJobs);
   const loading = useAppSelector(selectJobsLoading);
   const error = useAppSelector(selectJobsError);
   const currentPage = useAppSelector(selectCurrentPage);
   const totalPages = useAppSelector(selectTotalPages);
-  const hasMore = useAppSelector(selectHasMore);
   const totalJobs = useAppSelector(selectTotalJobCount);
+  const pageSize = 10;
   const filters = useAppSelector(selectActiveFilters);
   const hasFetched = useRef(false);
 
@@ -39,7 +42,7 @@ export default function HomePage() {
   useEffect(() => {
     if (!hasFetched.current) {
       hasFetched.current = true;
-      dispatch(fetchJobsRequest({ page: 1, limit: 20, sortBy: 'score', order: 'desc' }));
+      dispatch(fetchJobsRequest({ page: 1, limit: pageSize, sortBy: 'score', order: 'desc' }));
     }
   }, [dispatch]);
 
@@ -51,17 +54,20 @@ export default function HomePage() {
     [dispatch]
   );
 
-  // Handle filter apply - explicitly fetch with current filters
+  // Handle filter apply - read fresh filters from store to avoid stale closure
   const handleApplyFilters = useCallback(() => {
-    dispatch(fetchJobsRequest({ ...filters, page: 1, limit: 20 }));
-  }, [dispatch, filters]);
+    const freshFilters = selectActiveFilters(store.getState());
+    dispatch(fetchJobsRequest({ ...freshFilters, page: 1, limit: pageSize }));
+  }, [dispatch, store, pageSize]);
 
-  // Handle load more
-  const handleLoadMore = useCallback(() => {
-    const nextPage = currentPage + 1;
-    dispatch(setPage(nextPage));
-    dispatch(fetchJobsRequest({ ...filters, page: nextPage, limit: 20 }));
-  }, [dispatch, currentPage, filters]);
+
+  // Handle page change
+  const handlePageChange = useCallback((page: number) => {
+    if (page < 1 || page > totalPages) return;
+    const freshFilters = selectActiveFilters(store.getState());
+    dispatch(setPage(page));
+    dispatch(fetchJobsRequest({ ...freshFilters, page, limit: pageSize }));
+  }, [dispatch, store, totalPages]);
 
   return (
     <div className="min-h-screen">
@@ -88,7 +94,7 @@ export default function HomePage() {
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 -mt-16">
           <div className="bg-white rounded-xl shadow-lg p-4 text-center border border-gray-100">
-            <p className="text-3xl font-bold text-blue-600">{totalJobs || jobs.length}</p>
+            <p className="text-3xl font-bold text-blue-600">{totalJobs}</p>
             <p className="text-sm text-gray-500">Total Jobs</p>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-4 text-center border border-gray-100">
@@ -139,8 +145,10 @@ export default function HomePage() {
         <JobList
           jobs={jobs}
           isLoading={loading}
-          hasMore={hasMore}
-          onLoadMore={handleLoadMore}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          pageSize={pageSize}
         />
       </div>
     </div>
