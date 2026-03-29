@@ -44,7 +44,8 @@ export const runJobIngestionPipeline = async (options = {}) => {
   const summary = {
     fetched: 0,
     deduplicated: 0,
-    saved: 0,
+    newSaved: 0,
+    updated: 0,
     scored: 0,
     archived: 0,
     filters: options,
@@ -80,22 +81,22 @@ export const runJobIngestionPipeline = async (options = {}) => {
           const job = newJobs[i];
           try {
             await Job.create(job);
-            summary.saved++;
+            summary.newSaved++;
             console.log(`   ✅ ${i + 1}/${newJobs.length}: ${job.title}`);
           } catch (jobError) {
             console.error(`   ❌ ${i + 1}/${newJobs.length}: ${job.title}`);
             console.error(`      ${jobError.message}`);
           }
         }
-        console.log(`\n✅ New jobs saved: ${summary.saved}/${newJobs.length}`);
+        console.log(`\n✅ New jobs saved: ${summary.newSaved}/${newJobs.length}`);
         // Notification: Only if new jobs were saved
-        if (summary.saved > 0) {
+        if (summary.newSaved > 0) {
           const now = new Date();
           const dedupKey = `ingest-${now.toISOString().slice(0,13)}`; // hour granularity
           await createNotification({
-            message: `${summary.saved} new jobs posted`,
+            message: `${summary.newSaved} new jobs posted`,
             type: 'success',
-            meta: { count: summary.saved, filters: options },
+            meta: { count: summary.newSaved, filters: options },
             dedupKey,
           });
         }
@@ -123,14 +124,14 @@ export const runJobIngestionPipeline = async (options = {}) => {
               },
               { new: true, runValidators: true }
             );
-            summary.saved++;
+            summary.updated++;
             console.log(`   🔄 ${i + 1}/${existingJobs.length}: ${data.title} (updated)`);
           } catch (jobError) {
             console.error(`   ❌ ${i + 1}/${existingJobs.length}: ${data.title}`);
             console.error(`      ${jobError.message}`);
           }
         }
-        console.log(`\n✅ Existing jobs updated: ${summary.saved - newJobs.length}/${existingJobs.length}`);
+        console.log(`\n✅ Existing jobs updated: ${summary.updated}/${existingJobs.length}`);
       } catch (error) {
         console.error(`\n❌ UPDATE ERROR:`);
         console.error(`   Name: ${error.name}`);
@@ -139,11 +140,11 @@ export const runJobIngestionPipeline = async (options = {}) => {
       }
     }
 
-    console.log(`✓ Step 3 complete: ${summary.saved} total operations (new + updates)\n`);
+    console.log(`✓ Step 3 complete: ${summary.newSaved} new + ${summary.updated} updated\n`);
 
     // Step 4: Score all jobs
     console.log('Step 4: Scoring jobs...');
-    if (summary.saved > 0) {
+    if (summary.newSaved > 0 || summary.updated > 0) {
       try {
         summary.scored = await scoreAllJobs();
       } catch (scoreError) {
@@ -172,7 +173,8 @@ export const runJobIngestionPipeline = async (options = {}) => {
     console.log(`📊 Summary:`);
     console.log(`   Fetched:       ${summary.fetched}`);
     console.log(`   Deduplicated:  ${summary.deduplicated}`);
-    console.log(`   Saved:         ${summary.saved}`);
+    console.log(`   New Saved:     ${summary.newSaved}`);
+    console.log(`   Updated:       ${summary.updated}`);
     console.log(`   Scored:        ${summary.scored}`);
     console.log(`   Archived:      ${summary.archived}`);
     console.log(`   Error:         ${summary.error || 'None'}`);

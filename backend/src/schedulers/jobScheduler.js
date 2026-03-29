@@ -31,15 +31,16 @@ export const startScheduler = () => {
 
     scheduledJob = cron.schedule(cronExpression, async () => {
       console.log(`[${new Date().toISOString()}] 🔄 Scheduled job ingestion triggered`);
-      await runJobIngestionPipeline();
+      // Fetch jobs posted in last 3 days to maximize new records
+      await runJobIngestionPipeline({ timePeriod: '3days' });
     });
 
     // Weekly cleanup: Sunday at 2 AM (for Atlas free tier storage management)
-    console.log(`\n🗑️  Scheduling cleanup job every Sunday at 2:00 AM (delete jobs 60+ days old)`);
+    console.log(`\n🗑️  Scheduling cleanup job every Sunday at 2:00 AM (delete jobs 20+ days old)`);
     cleanupJob = cron.schedule('0 2 * * 0', async () => {
       console.log(`[${new Date().toISOString()}] 🧹 Weekly cleanup triggered`);
       try {
-        const result = await deleteOldJobs(60);
+        const result = await deleteOldJobs(20);
         console.log(`✓ Cleanup completed: Deleted ${result.deletedCount} jobs, freed ${result.freedMB}MB`);
       } catch (error) {
         console.error(`✗ Cleanup error: ${error.message}`);

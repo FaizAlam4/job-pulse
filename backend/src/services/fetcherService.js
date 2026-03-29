@@ -275,9 +275,10 @@ export const fetchAllJobs = async (options = {}) => {
     console.log('🔄 Starting multi-source job fetch...');
     
     const { 
-      query = 'backend developer', 
+      query, // If provided, use single query; otherwise use config.searchQueries
       country,
       maxJobsPerCountry,
+      maxJobsPerQuery,
       countriesToFetch: countriesOverride,
       ...filters 
     } = options;
@@ -287,29 +288,41 @@ export const fetchAllJobs = async (options = {}) => {
       ? [country] 
       : (countriesOverride || config.countriesToFetch);
 
-    const allJobs = [];
-    const maxJobs = maxJobsPerCountry || config.maxJobsPerCountry;
+    // Determine queries to use (single query or multiple from config)
+    const queries = query ? [query] : config.searchQueries;
+    const jobsPerQuery = maxJobsPerQuery || config.maxJobsPerQuery;
 
-    console.log(`📊 Budget Info: ~${countries.length * Math.ceil(maxJobs / 10)} requests per run (you have 240/month)`);
+    const allJobs = [];
+    const totalRequests = countries.length * queries.length * Math.ceil(jobsPerQuery / 10);
+
+    console.log(`📊 Budget Info: ~${totalRequests} requests per run (you have 240/month)`);
     console.log(`🌍 Fetching from: ${countries.join(', ')}`);
-    console.log(`⏱  Target: ${maxJobs} jobs per country\n`);
+    console.log(`🔍 Queries: ${queries.join(', ')}`);
+    console.log(`⏱  Target: ${jobsPerQuery} jobs per query\n`);
 
     // Fetch from Google Jobs if enabled
     if (config.includeGoogleJobs) {
       for (const targetCountry of countries) {
-        const googleOptions = {
-          location: filters.location || (targetCountry === 'India' ? 'India' : targetCountry),
-          country: targetCountry,
-          remote: filters.remote,
-          radius: filters.radius,
-          timePeriod: filters.timePeriod,
-          jobType: filters.jobType,
-          maxJobs: maxJobs, // Use configurable limit
-        };
+        for (const searchQuery of queries) {
+          const googleOptions = {
+            location: filters.location || (targetCountry === 'India' ? 'India' : targetCountry),
+            country: targetCountry,
+            remote: filters.remote,
+            radius: filters.radius,
+            timePeriod: filters.timePeriod,
+            jobType: filters.jobType,
+            maxJobs: jobsPerQuery,
+          };
 
-        console.log(`\n🌍 Fetching from ${targetCountry}...`);
-        const googleJobs = await fetchFromGoogleJobs(query, googleOptions);
-        allJobs.push(...googleJobs);
+          console.log(`\n🌍 Fetching "${searchQuery}" from ${targetCountry}...`);
+          const googleJobs = await fetchFromGoogleJobs(searchQuery, googleOptions);
+          allJobs.push(...googleJobs);
+          
+          // Small delay between queries to avoid rate limiting
+          if (queries.length > 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
       }
     } else {
       console.log('⚠ Google Jobs API fetch is disabled by config.includeGoogleJobs');

@@ -29,7 +29,12 @@ export const config = {
   // Include free Remotive API (no cost)
   includeRemotive: process.env.INCLUDE_REMOTIVE !== 'false', // Default: true
   // Include Google Jobs API (SerpAPI)
-  includeGoogleJobs: process.env.INCLUDE_GOOGLE_JOBS !== 'false', // Default: true
+  includeGoogleJobs: process.env.INCLUDE_GOOGLE_JOBS !== 'false', // Default: true,
+  // Search queries to rotate through (broadens job discovery)
+  // Format: "software engineer,software developer,sde" (comma-separated)
+  searchQueries: (process.env.SEARCH_QUERIES || 'software engineer,software developer,backend developer,full stack developer,sde').split(',').map(q => q.trim()),
+  // Jobs per query (total = queries × jobsPerQuery)
+  maxJobsPerQuery: parseInt(process.env.MAX_JOBS_PER_QUERY) || 20,
 };
 
 export default config;
