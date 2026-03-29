@@ -39,6 +39,22 @@ export const selectJobDetailLoading = (state: RootState) => state.jobs.isLoading
 export const selectIsLoadingStats = (state: RootState) => state.jobs.isLoadingStats;
 export const selectIsSearching = (state: RootState) => state.jobs.isSearching;
 
+// Fetch tracking (to distinguish "not loaded yet" from "loaded but empty")
+export const selectHasFetchedJobs = (state: RootState) => state.jobs.hasFetchedJobs;
+export const selectHasFetchedTopJobs = (state: RootState) => state.jobs.hasFetchedTopJobs;
+export const selectHasFetchedStats = (state: RootState) => state.jobs.hasFetchedStats;
+export const selectHasFetchedDetail = (state: RootState) => state.jobs.hasFetchedDetail;
+
+// Combined loading check: show skeleton if loading OR haven't fetched yet
+export const selectShouldShowJobsSkeleton = (state: RootState) => 
+  state.jobs.isLoading || !state.jobs.hasFetchedJobs;
+export const selectShouldShowTopJobsSkeleton = (state: RootState) => 
+  state.jobs.isLoading || !state.jobs.hasFetchedTopJobs;
+export const selectShouldShowStatsSkeleton = (state: RootState) => 
+  state.jobs.isLoadingStats || !state.jobs.hasFetchedStats;
+export const selectShouldShowDetailSkeleton = (state: RootState) => 
+  state.jobs.isLoadingDetail || !state.jobs.hasFetchedDetail;
+
 // Error
 export const selectError = (state: RootState) => state.jobs.error;
 export const selectJobsError = (state: RootState) => state.jobs.error;

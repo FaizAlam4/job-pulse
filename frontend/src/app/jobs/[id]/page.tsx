@@ -15,8 +15,9 @@ import {
   selectSimilarJobs,
   selectJobDetailLoading,
   selectJobsError,
+  selectShouldShowDetailSkeleton,
 } from '@/modules/jobs/store/jobsSelectors';
-import { PageLoader } from '@/modules/common/components/Loader';
+import { JobDetailSkeleton } from '@/modules/common/components/Loader';
 import { ErrorState } from '@/modules/common/components/ErrorState';
 import { formatDate, formatDistanceToNow } from '@/modules/common/utils/dateUtils';
 import { Job, SimilarJob } from '@/modules/jobs/types';
@@ -45,6 +46,7 @@ export default function JobDetailPage() {
   const job = useAppSelector(selectCurrentJob);
   const similarJobs = useAppSelector(selectSimilarJobs);
   const loading = useAppSelector(selectJobDetailLoading);
+  const showSkeleton = useAppSelector(selectShouldShowDetailSkeleton);
   const error = useAppSelector(selectJobsError);
 
   const jobId = params?.id as string;
@@ -55,8 +57,8 @@ export default function JobDetailPage() {
     }
   }, [dispatch, jobId]);
 
-  if (loading) {
-    return <PageLoader />;
+  if (showSkeleton) {
+    return <JobDetailSkeleton />;
   }
 
   if (error) {

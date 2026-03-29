@@ -12,14 +12,16 @@ import {
   selectStats,
   selectIsLoadingStats,
   selectJobsError,
+  selectShouldShowStatsSkeleton,
 } from '@/modules/jobs/store/jobsSelectors';
-import { PageLoader } from '@/modules/common/components/Loader';
+import { StatsPageSkeleton } from '@/modules/common/components/Loader';
 import { formatDistanceToNow } from '@/modules/common/utils/dateUtils';
 
 export default function StatsPage() {
   const dispatch = useAppDispatch();
   const stats = useAppSelector(selectStats);
   const loading = useAppSelector(selectIsLoadingStats);
+  const showSkeleton = useAppSelector(selectShouldShowStatsSkeleton);
   const error = useAppSelector(selectJobsError);
   const hasFetched = useRef(false);
 
@@ -31,8 +33,9 @@ export default function StatsPage() {
     }
   }, [dispatch]);
 
-  if (loading && !stats) {
-    return <PageLoader />;
+  // Show skeleton while loading or before first fetch
+  if (showSkeleton) {
+    return <StatsPageSkeleton />;
   }
 
   const overall = stats?.overall;

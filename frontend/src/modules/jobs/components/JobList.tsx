@@ -34,6 +34,19 @@ export const JobList: React.FC<JobListProps> = ({
   onPageChange,
   pageSize = 10,
 }) => {
+  // Show skeletons while loading
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-4">
+          {Array.from({ length: pageSize }).map((_, index) => (
+            <JobCardSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // Calculate jobs to show for current page
   const startIdx = (currentPage - 1) * pageSize;
   const endIdx = startIdx + pageSize;

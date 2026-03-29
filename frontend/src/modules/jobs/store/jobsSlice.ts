@@ -35,6 +35,12 @@ interface JobsState {
   isLoadingStats: boolean;
   isSearching: boolean;
   
+  // Fetch tracking (to show skeleton on initial load)
+  hasFetchedJobs: boolean;
+  hasFetchedTopJobs: boolean;
+  hasFetchedStats: boolean;
+  hasFetchedDetail: boolean;
+  
   // Error states
   error: string | null;
 }
@@ -59,6 +65,10 @@ const initialState: JobsState = {
   isLoadingDetail: false,
   isLoadingStats: false,
   isSearching: false,
+  hasFetchedJobs: false,
+  hasFetchedTopJobs: false,
+  hasFetchedStats: false,
+  hasFetchedDetail: false,
   error: null,
 };
 
@@ -77,6 +87,7 @@ const jobsSlice = createSlice({
     },
     fetchJobsSuccess: (state, action: PayloadAction<{ jobs: Job[]; pagination: PaginationMeta }>) => {
       state.isLoading = false;
+      state.hasFetchedJobs = true;
       // If page > 1, append jobs; else, replace
       const page = action.payload.pagination?.currentPage || 1;
       if (page > 1) {
@@ -91,6 +102,7 @@ const jobsSlice = createSlice({
     },
     fetchJobsFailure: (state, action: PayloadAction<string>) => {
       state.isLoading = false;
+      state.hasFetchedJobs = true;
       state.error = action.payload;
     },
 
@@ -98,14 +110,17 @@ const jobsSlice = createSlice({
     fetchJobDetailRequest: (state, _action: PayloadAction<string>) => {
       state.isLoadingDetail = true;
       state.error = null;
+      state.hasFetchedDetail = false;
     },
     fetchJobDetailSuccess: (state, action: PayloadAction<{ job: Job; similarJobs: SimilarJob[] }>) => {
       state.isLoadingDetail = false;
+      state.hasFetchedDetail = true;
       state.selectedJob = action.payload.job;
       state.similarJobs = action.payload.similarJobs;
     },
     fetchJobDetailFailure: (state, action: PayloadAction<string>) => {
       state.isLoadingDetail = false;
+      state.hasFetchedDetail = true;
       state.error = action.payload;
     },
 
@@ -116,10 +131,12 @@ const jobsSlice = createSlice({
     },
     fetchTopJobsSuccess: (state, action: PayloadAction<Job[]>) => {
       state.isLoading = false;
+      state.hasFetchedTopJobs = true;
       state.topJobs = action.payload;
     },
     fetchTopJobsFailure: (state, action: PayloadAction<string>) => {
       state.isLoading = false;
+      state.hasFetchedTopJobs = true;
       state.error = action.payload;
     },
 
@@ -129,10 +146,12 @@ const jobsSlice = createSlice({
     },
     fetchStatsSuccess: (state, action: PayloadAction<JobStats>) => {
       state.isLoadingStats = false;
+      state.hasFetchedStats = true;
       state.stats = action.payload;
     },
     fetchStatsFailure: (state, action: PayloadAction<string>) => {
       state.isLoadingStats = false;
+      state.hasFetchedStats = true;
       state.error = action.payload;
     },
 

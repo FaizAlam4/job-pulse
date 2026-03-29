@@ -12,13 +12,16 @@ import {
   selectTopJobs,
   selectIsLoading,
   selectJobsError,
+  selectShouldShowTopJobsSkeleton,
 } from '@/modules/jobs/store/jobsSelectors';
 import { JobList } from '@/modules/jobs/components/JobList';
+import { StatCardSkeleton } from '@/modules/common/components/Loader';
 
 export default function TopJobsPage() {
   const dispatch = useAppDispatch();
   const topJobs = useAppSelector(selectTopJobs);
   const loading = useAppSelector(selectIsLoading);
+  const showSkeleton = useAppSelector(selectShouldShowTopJobsSkeleton);
   const error = useAppSelector(selectJobsError);
   const hasFetched = useRef(false);
 
@@ -60,24 +63,34 @@ export default function TopJobsPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Bar */}
         <div className="grid grid-cols-3 gap-4 mb-8 -mt-16">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{topJobs.length}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Top Jobs</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{avgScore}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Score</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
-            <div className="flex items-center justify-center gap-1">
-              {[1,2,3,4,5].map((star) => (
-                <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Quality</p>
-          </div>
+          {showSkeleton ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{topJobs.length}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Top Jobs</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{avgScore}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Score</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+                <div className="flex items-center justify-center gap-1">
+                  {[1,2,3,4,5].map((star) => (
+                    <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Quality</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Error State */}
@@ -101,14 +114,14 @@ export default function TopJobsPage() {
             Featured Opportunities
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {loading ? 'Loading...' : `${topJobs.length} premium jobs`}
+            {showSkeleton ? 'Loading...' : `${topJobs.length} premium jobs`}
           </p>
         </div>
 
         {/* Job List */}
         <JobList
           jobs={topJobs}
-          isLoading={loading}
+          isLoading={showSkeleton}
           emptyMessage="No top jobs available at the moment"
         />
       </div>

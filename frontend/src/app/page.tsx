@@ -16,11 +16,13 @@ import {
   selectTotalPages,
   selectHasMore,
   selectTotalJobCount,
+  selectShouldShowJobsSkeleton,
 } from '@/modules/jobs/store/jobsSelectors';
 import { selectActiveFilters } from '@/modules/filters/store/filtersSelectors';
 import { JobList } from '@/modules/jobs/components/JobList';
 import { FilterBar } from '@/modules/filters/components/FilterBar';
 import { SearchBar } from '@/modules/common/components/SearchBar';
+import { StatCardSkeleton } from '@/modules/common/components/Loader';
 import { setSearchQuery } from '@/modules/filters/store/filtersSlice';
 import { useStore } from 'react-redux';
 import { RootState } from '@/store';
@@ -30,6 +32,7 @@ export default function HomePage() {
   const store = useStore<RootState>();
   const jobs = useAppSelector(selectAllJobs);
   const loading = useAppSelector(selectJobsLoading);
+  const showSkeleton = useAppSelector(selectShouldShowJobsSkeleton);
   const error = useAppSelector(selectJobsError);
   const currentPage = useAppSelector(selectCurrentPage);
   const totalPages = useAppSelector(selectTotalPages);
@@ -96,22 +99,33 @@ export default function HomePage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 -mt-16">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{totalJobs}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total Jobs</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{jobs.length}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Showing</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{currentPage}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Current Page</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
-            <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{totalPages}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total Pages</p>
-          </div>
+          {showSkeleton ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{totalJobs}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Jobs</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{jobs.length}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Showing</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{currentPage}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Current Page</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700">
+                <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{totalPages}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Pages</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Filters */}
@@ -140,14 +154,14 @@ export default function HomePage() {
             Job Listings
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {loading ? 'Loading...' : `Sorted by score`}
+            {showSkeleton ? 'Loading...' : `Sorted by score`}
           </p>
         </div>
 
         {/* Job List */}
         <JobList
           jobs={jobs}
-          isLoading={loading}
+          isLoading={showSkeleton}
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
