@@ -106,6 +106,7 @@ export interface JobStatsResponse {
 export interface JobFilters {
   page?: number;
   limit?: number;
+  search?: string;
   location?: string;
   country?: string;
   state?: string;

@@ -164,9 +164,23 @@ export default function JobDetailPage() {
               </h2>
               <div className="prose prose-sm max-w-none text-gray-600 dark:text-gray-300 leading-relaxed">
                 {job.description ? (
-                  // If job.description contains HTML, render it as HTML. If not, render as plain text.
-                  // WARNING: Only use dangerouslySetInnerHTML if the HTML is trusted or sanitized to prevent XSS.
-                  <div className="job-description whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: job.description }} />
+                  <div
+                    className="job-description whitespace-pre-wrap overflow-auto"
+                    style={{
+                      maxHeight: '40vh', // desktop
+                      minHeight: '120px',
+                    }}
+                  >
+                    <div
+                      className="px-1 md:px-2"
+                      style={{
+                        maxHeight: '40vh',
+                        overflowY: 'auto',
+                        WebkitOverflowScrolling: 'touch',
+                      }}
+                      dangerouslySetInnerHTML={{ __html: job.description }}
+                    />
+                  </div>
                 ) : (
                   <div className="text-center py-8 text-gray-400 dark:text-gray-500">
                     <svg className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

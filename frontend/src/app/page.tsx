@@ -50,8 +50,11 @@ export default function HomePage() {
   const handleSearch = useCallback(
     (query: string) => {
       dispatch(setSearchQuery(query));
+      // Always fetch jobs with new search query (debounced)
+      const freshFilters = selectActiveFilters(store.getState());
+      dispatch(fetchJobsRequest({ ...freshFilters, search: query, page: 1, limit: pageSize }));
     },
-    [dispatch]
+    [dispatch, store, pageSize]
   );
 
   // Handle filter apply - read fresh filters from store to avoid stale closure
@@ -72,7 +75,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-slate-800 dark:via-slate-900 dark:to-indigo-950 text-white">
+      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-[#1e293b] dark:via-[#243056] dark:to-[#312e81] text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">

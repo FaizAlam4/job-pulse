@@ -8,6 +8,7 @@ import path from 'path';
 /**
  * Get all jobs with optional filtering
  * @QueryParams:
+ *   - search: Search by title, company, or keywords (case-insensitive)
  *   - location: Filter by location (case-insensitive, partial match)
  *   - country: Filter by country (e.g., "United States", "USA", "India")
  *   - state: Filter by state (e.g., "California", "CA", "New York")
@@ -23,6 +24,7 @@ import path from 'path';
 export const getAllJobs = async (req, reply) => {
   try {
     const { 
+      search,
       location,
       country,
       state,
@@ -42,6 +44,16 @@ export const getAllJobs = async (req, reply) => {
 
     // Build query
     const query = { isActive: true };
+
+    // Search filter (title, company, keywords)
+    if (search && search.trim()) {
+      const searchRegex = { $regex: search.trim(), $options: 'i' };
+      query.$or = [
+        { title: searchRegex },
+        { company: searchRegex },
+        { keywords: searchRegex },
+      ];
+    }
     
     // Location filters (can combine multiple)
     const locationConditions = [];
@@ -116,6 +128,7 @@ export const getAllJobs = async (req, reply) => {
       success: true,
       data: jobs,
       filters: {
+        search: search || null,
         location: location || null,
         country: country || null,
         state: state || null,
