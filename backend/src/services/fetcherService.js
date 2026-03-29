@@ -222,28 +222,13 @@ export const fetchFromGoogleJobs = async (query = 'backend developer', options =
  */
 export const fetchFromRemotive = async (category = 'backend') => {
   const REMOTIVE_API_URL = 'https://remotive.com/api/remote-jobs';
-  const fs = await import('fs');
-  const path = await import('path');
   try {
     console.log(`📡 Fetching jobs from Remotive: "${category}"`);
-    let jobs = [];
-    try {
-      const response = await axios.get(REMOTIVE_API_URL, {
-        params: { category },
-        timeout: 10000,
-      });
-      jobs = response.data.jobs || [];
-    } catch (netErr) {
-      // Fallback to local sample if network fails
-      console.warn('⚠ Remotive API unreachable, using local sample response.');
-      const samplePath = path.resolve(process.cwd(), 'backend/scripts/remotive_sample_response.json');
-      if (fs.existsSync(samplePath)) {
-        const raw = fs.readFileSync(samplePath, 'utf-8');
-        jobs = JSON.parse(raw).jobs || [];
-      } else {
-        throw netErr;
-      }
-    }
+    const response = await axios.get(REMOTIVE_API_URL, {
+      params: { category },
+      timeout: 10000,
+    });
+    const jobs = response.data.jobs || [];
     // Normalize Remotive response to match Google Jobs schema
     return jobs.map((job) => ({
       title: job.title,

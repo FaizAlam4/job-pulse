@@ -63,17 +63,6 @@ export const runJobIngestionPipeline = async (options = {}) => {
     summary.fetched = rawJobs.length;
     console.log(`✓ Step 1 complete: ${rawJobs.length} raw jobs fetched\n`);
 
-    // Save fetched jobs to JSON for offline use
-    try {
-      const fs = await import('fs');
-      const path = await import('path');
-      const outPath = path.resolve(process.cwd(), 'backend/scripts/last_ingested_jobs.json');
-      fs.writeFileSync(outPath, JSON.stringify({ jobs: rawJobs }, null, 2), 'utf-8');
-      console.log(`📝 Saved fetched jobs to ${outPath}`);
-    } catch (fileErr) {
-      console.warn('⚠ Could not save fetched jobs to JSON:', fileErr.message);
-    }
-
     // Step 2: Deduplicate
     console.log('Step 2: Deduplicating...');
     const { newJobs, existingJobs } = await deduplicateJobs(rawJobs);
