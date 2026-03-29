@@ -1,5 +1,6 @@
 import Job from '../models/Job.js';
 import { generateJobHash } from '../utils/scoring.js';
+import { createNotification } from './notificationService.js';
 
 /**
  * Deduplication Service
@@ -9,22 +10,22 @@ import { generateJobHash } from '../utils/scoring.js';
 /**
  * Check if a job already exists based on hash
  * @param {string} hash - Deduplication hash
- * @returns {Promise<boolean>}
+ * @returns {Promise<object>} Job object or null
  */
-export const jobExists = async (hash) => {
-  const existing = await Job.findOne({ hash });
-  return !!existing;
+export const findJobByHash = async (hash) => {
+  return await Job.findOne({ hash });
 };
 
 /**
- * Deduplicate jobs before saving
- * Removes duplicates from the incoming batch
+ * Deduplicate jobs and identify which are new vs existing
+ * Returns both new jobs to insert and existing jobs to update
  * 
  * @param {Array} jobs - Array of job objects from fetchers
- * @returns {Promise<Array>} Deduplicated jobs
+ * @returns {Promise<object>} { newJobs: [], existingJobs: [] }
  */
 export const deduplicateJobs = async (jobs) => {
-  const deduplicated = [];
+  const newJobs = [];
+  const existingJobs = [];
   const seenHashes = new Set();
 
   console.log(`🔍 Deduplicating ${jobs.length} jobs...`);
@@ -38,25 +39,29 @@ export const deduplicateJobs = async (jobs) => {
       continue;
     }
 
-    // Skip if this job already exists in database
-    const exists = await jobExists(hash);
-    if (exists) {
-      console.log(`   ⏭️  Skipped (DB duplicate): ${job.title}`);
-      continue;
+    // Check if this job already exists in database
+    const existingJob = await Job.findOne({ hash });
+    if (existingJob) {
+      console.log(`   🔄 Update: ${job.title} (existing ID: ${existingJob._id})`);
+      existingJobs.push({
+        hash,
+        data: job,
+        id: existingJob._id,
+      });
+    } else {
+      console.log(`   ✅ New: ${job.title} (hash: ${hash.substring(0, 8)}...)`);
+      newJobs.push({
+        ...job,
+        hash,
+      });
     }
 
     seenHashes.add(hash);
-    const jobWithHash = {
-      ...job,
-      hash,
-    };
-    deduplicated.push(jobWithHash);
-    console.log(`   ✅ Added: ${job.title} (hash: ${hash.substring(0, 8)}...)`);
   }
 
-  console.log(`✓ Deduplicated: ${jobs.length} → ${deduplicated.length} jobs`);
+  console.log(`✓ Deduplicated: ${jobs.length} → ${newJobs.length} new + ${existingJobs.length} updates`);
 
-  return deduplicated;
+  return { newJobs, existingJobs };
 };
 
 /**
@@ -110,6 +115,18 @@ export const deleteOldJobs = async (daysOld = 60) => {
     });
 
     console.log(`🗑️  DELETED ${result.deletedCount} jobs older than ${daysOld} days (freed ~${estimatedMB}MB)`);
+
+    // Notification: Only if jobs were deleted
+    if (result.deletedCount > 0) {
+      const now = new Date();
+      const dedupKey = `cleanup-${now.toISOString().slice(0,10)}`; // day granularity
+      await createNotification({
+        message: `${result.deletedCount} old jobs deleted`,
+        type: 'warning',
+        meta: { deletedCount: result.deletedCount, freedMB: estimatedMB, cutoffDate: cutoffDate.toISOString() },
+        dedupKey,
+      });
+    }
 
     return {
       deletedCount: result.deletedCount,

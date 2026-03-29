@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f9fafb;
+  --foreground: #111827;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --muted: #6b7280;
+  --accent: #3b82f6;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --muted: #94a3b8;
+  --accent: #60a5fa;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode form elements */
+.dark input, .dark select, .dark textarea {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+.dark select option {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+/* Light mode form elements */
+input, select, textarea, button {
+  color: #111827;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280;
+}
+
+select option {
+  color: #111827;
+  background: white;
+}
+
+/* Dark mode transitions */
+.dark * {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Job description HTML content - override inline styles in dark mode */
+.dark .job-description,
+.dark .job-description * {
+  color: #d1d5db !important; /* gray-300 */
+  background-color: transparent !important;
+  border-color: #475569 !important;
+}
+
+.dark .job-description a {
+  color: #60a5fa !important; /* blue-400 */
+}
+
+.dark .job-description strong,
+.dark .job-description b,
+.dark .job-description h1,
+.dark .job-description h2,
+.dark .job-description h3,
+.dark .job-description h4,
+.dark .job-description h5,
+.dark .job-description h6 {
+  color: #f1f5f9 !important; /* slate-100 */
+}
+
+.dark .job-description code {
+  background-color: #334155 !important; /* slate-700 */
+  color: #e2e8f0 !important; /* slate-200 */
+}
+
+.dark .job-description pre {
+  background-color: #1e293b !important; /* slate-800 */
+}
+
+.dark .job-description ul,
+.dark .job-description ol {
+  color: #d1d5db !important;
+}
+
+.dark .job-description li::marker {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+.dark .job-description blockquote {
+  border-left-color: #475569 !important;
+  color: #cbd5e1 !important; /* slate-300 */
+}
+
+.dark .job-description table,
+.dark .job-description th,
+.dark .job-description td {
+  border-color: #475569 !important;
+}
+
+.dark .job-description th {
+  background-color: #334155 !important;
+}
+
+.dark .job-description hr {
+  border-color: #475569 !important;
+}
