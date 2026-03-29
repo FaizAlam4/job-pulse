@@ -2,6 +2,7 @@ import Job from '../models/Job.js';
 import { fetchAllJobs } from './fetcherService.js';
 import { deduplicateJobs, archiveOldJobs } from './deduplicateService.js';
 import { scoreAllJobs } from './scoringService.js';
+import { createNotification } from './notificationService.js';
 
 /**
  * Job Aggregation Service
@@ -98,6 +99,17 @@ export const runJobIngestionPipeline = async (options = {}) => {
           }
         }
         console.log(`\n✅ New jobs saved: ${summary.saved}/${newJobs.length}`);
+        // Notification: Only if new jobs were saved
+        if (summary.saved > 0) {
+          const now = new Date();
+          const dedupKey = `ingest-${now.toISOString().slice(0,13)}`; // hour granularity
+          await createNotification({
+            message: `${summary.saved} new jobs posted`,
+            type: 'success',
+            meta: { count: summary.saved, filters: options },
+            dedupKey,
+          });
+        }
       } catch (error) {
         console.error(`\n❌ SAVE ERROR:`);
         console.error(`   Name: ${error.name}`);

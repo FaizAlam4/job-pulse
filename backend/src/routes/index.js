@@ -11,6 +11,7 @@ import {
   debugDeleteAllJobs,
 } from '../controllers/jobController.js';
 import { apiKeyAuth } from '../middleware/apiKeyAuth.js';
+import { registerNotificationRoutes } from './notification.js';
 
 /**
  * Register all job routes
@@ -46,6 +47,9 @@ export const registerJobRoutes = async (fastify) => {
 
   // DEBUG: Delete all jobs
   fastify.post('/admin/debug-delete-all', debugDeleteAllJobs);
+
+  // Register notification routes
+  await registerNotificationRoutes(fastify);
 };
 
 /**

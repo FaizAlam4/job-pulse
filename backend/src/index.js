@@ -5,6 +5,7 @@ import { connectDB, disconnectDB } from './config/database.js';
 import { config } from './config/index.js';
 import { registerJobRoutes, registerUtilityRoutes } from './routes/index.js';
 import { startScheduler, stopScheduler } from './schedulers/jobScheduler.js';
+import { startNotificationCleanupScheduler, stopNotificationCleanupScheduler } from './schedulers/notificationScheduler.js';
 
 // Global error handlers to catch crashes
 process.on('uncaughtException', (err) => {
@@ -66,8 +67,9 @@ const initializeServer = async () => {
   await registerUtilityRoutes(fastify);
   await registerJobRoutes(fastify);
 
-  // Start scheduler
+  // Start schedulers
   startScheduler();
+  startNotificationCleanupScheduler();
 
   // Graceful shutdown handlers
   const signals = ['SIGTERM', 'SIGINT'];
@@ -76,6 +78,7 @@ const initializeServer = async () => {
     console.log(`\n⏹ Received ${signal}, shutting down gracefully...`);
 
     stopScheduler();
+    stopNotificationCleanupScheduler();
     await fastify.close();
     await disconnectDB();
 

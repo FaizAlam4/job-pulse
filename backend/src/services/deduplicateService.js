@@ -1,5 +1,6 @@
 import Job from '../models/Job.js';
 import { generateJobHash } from '../utils/scoring.js';
+import { createNotification } from './notificationService.js';
 
 /**
  * Deduplication Service
@@ -114,6 +115,18 @@ export const deleteOldJobs = async (daysOld = 60) => {
     });
 
     console.log(`🗑️  DELETED ${result.deletedCount} jobs older than ${daysOld} days (freed ~${estimatedMB}MB)`);
+
+    // Notification: Only if jobs were deleted
+    if (result.deletedCount > 0) {
+      const now = new Date();
+      const dedupKey = `cleanup-${now.toISOString().slice(0,10)}`; // day granularity
+      await createNotification({
+        message: `${result.deletedCount} old jobs deleted`,
+        type: 'warning',
+        meta: { deletedCount: result.deletedCount, freedMB: estimatedMB, cutoffDate: cutoffDate.toISOString() },
+        dedupKey,
+      });
+    }
 
     return {
       deletedCount: result.deletedCount,
