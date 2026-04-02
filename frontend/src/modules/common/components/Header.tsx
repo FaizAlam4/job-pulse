@@ -7,8 +7,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { useAppDispatch } from '@/modules/common/hooks/useRedux';
 import { resetFilters } from '@/modules/filters/store/filtersSlice';
@@ -22,7 +23,9 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
+  const { isAuthenticated, logout } = useAuth();
   const dispatch = useAppDispatch();
 
   const navLinks = [
@@ -40,6 +43,12 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const handleNavClick = () => {
     dispatch(resetFilters());
     dispatch(resetJobsFilters());
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -87,9 +96,21 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
           {/* Right section */}
           <div className="flex items-center space-x-4">
             {children}
-            {/* Desktop: NotificationBell then Dark Mode Toggle */}
+            {/* Desktop: NotificationBell, Logout (if auth), then Dark Mode Toggle */}
             <div className="hidden md:flex items-center space-x-2">
               <NotificationBell />
+              {isAuthenticated && (
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              )}
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
@@ -107,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 )}
               </button>
             </div>
-            {/* Mobile: Hamburger, NotificationBell, and Dark Mode Toggle */}
+            {/* Mobile: Hamburger, NotificationBell, Logout (if auth), and Dark Mode Toggle */}
             <div className="flex md:hidden items-center space-x-2">
               <button 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -146,6 +167,18 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 )}
               </button>
               <NotificationBell />
+              {isAuthenticated && (
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              )}
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"

@@ -7,10 +7,44 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import LoginModal from '@/components/auth/LoginModal';
+import SignupModal from '@/components/auth/SignupModal';
 
 export default function TrackerPage() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
+  // If authenticated, show tracker content
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
+            Your Application Tracker
+          </h1>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 border border-gray-100 dark:border-slate-700">
+            <p className="text-gray-600 dark:text-gray-400 text-center text-lg">
+              🎉 Welcome! Application tracker coming soon...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state - but keep modals rendered
+  if (isLoading && !showLoginModal && !showSignupModal) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Not authenticated - show lock screen
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -219,6 +253,7 @@ export default function TrackerPage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <motion.button
+              onClick={() => setShowSignupModal(true)}
               className="relative px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-lg shadow-lg overflow-hidden"
               onHoverStart={() => setHoveredButton('signup')}
               onHoverEnd={() => setHoveredButton(null)}
@@ -240,6 +275,7 @@ export default function TrackerPage() {
             </motion.button>
 
             <motion.button
+              onClick={() => setShowLoginModal(true)}
               className="relative px-8 py-4 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl font-semibold text-lg shadow-lg border-2 border-gray-200 dark:border-slate-600"
               onHoverStart={() => setHoveredButton('signin')}
               onHoverEnd={() => setHoveredButton(null)}
@@ -297,6 +333,24 @@ export default function TrackerPage() {
           </p>
         </motion.div>
       </motion.div>
+
+      {/* Modals */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSwitchToSignup={() => {
+          setShowLoginModal(false);
+          setShowSignupModal(true);
+        }}
+      />
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onSwitchToLogin={() => {
+          setShowSignupModal(false);
+          setShowLoginModal(true);
+        }}
+      />
     </div>
   );
 }

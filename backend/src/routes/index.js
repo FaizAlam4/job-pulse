@@ -12,6 +12,7 @@ import {
 } from '../controllers/jobController.js';
 import { apiKeyAuth } from '../middleware/apiKeyAuth.js';
 import { registerNotificationRoutes } from './notification.js';
+import { registerAuthRoutes } from './auth.js';
 
 /**
  * Register all job routes
@@ -50,6 +51,9 @@ export const registerJobRoutes = async (fastify) => {
 
   // Register notification routes
   await registerNotificationRoutes(fastify);
+  
+  // Register authentication routes
+  await registerAuthRoutes(fastify);
 };
 
 /**
