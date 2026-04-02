@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface LoaderProps {
   size?: 'sm' | 'md' | 'lg';
@@ -17,10 +18,23 @@ const sizeClasses = {
 };
 
 export const Loader: React.FC<LoaderProps> = ({ size = 'md', className = '' }) => {
+  const spinnerVariants = {
+    animate: {
+      rotate: 360,
+      transition: {
+        duration: 1,
+        repeat: Infinity,
+        ease: 'linear' as const,
+      },
+    },
+  };
+
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <div
-        className={`${sizeClasses[size]} animate-spin rounded-full border-2 border-gray-300 border-t-blue-600`}
+      <motion.div
+        className={`${sizeClasses[size]} rounded-full border-2 border-gray-300 border-t-blue-600`}
+        variants={spinnerVariants}
+        animate="animate"
       />
     </div>
   );
@@ -28,60 +42,204 @@ export const Loader: React.FC<LoaderProps> = ({ size = 'md', className = '' }) =
 
 // Full page loader
 export const PageLoader: React.FC = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.2 },
+    },
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { delay: 0.1, duration: 0.3 },
+    },
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-50">
-      <div className="flex flex-col items-center gap-4">
+    <motion.div
+      className="fixed inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-50"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        className="flex flex-col items-center gap-4"
+        variants={contentVariants}
+        initial="hidden"
+        animate="visible"
+      >
         <Loader size="lg" />
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-      </div>
-    </div>
+        <motion.p
+          className="text-gray-600 dark:text-gray-400"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          Loading...
+        </motion.p>
+      </motion.div>
+    </motion.div>
   );
 };
 
 // Skeleton loader for job cards
 export const JobCardSkeleton: React.FC = () => {
+  const shimmerVariants = {
+    animate: {
+      backgroundPosition: ['200% 0%', '-200% 0%'],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: 'linear' as const,
+      },
+    },
+  };
+
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 animate-pulse border border-gray-100 dark:border-slate-700">
+    <motion.div
+      className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-slate-700"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <div className="h-6 bg-gray-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
-          <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/2" />
+          <motion.div
+            className="h-6 bg-gray-200 dark:bg-slate-700 rounded w-3/4 mb-2"
+            variants={shimmerVariants}
+            animate="animate"
+          />
+          <motion.div
+            className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/2"
+            variants={shimmerVariants}
+            animate="animate"
+            transition={{ delay: 0.1 }}
+          />
         </div>
-        <div className="h-10 w-16 bg-gray-200 dark:bg-slate-700 rounded-lg" />
+        <motion.div
+          className="h-10 w-16 bg-gray-200 dark:bg-slate-700 rounded-lg"
+          variants={shimmerVariants}
+          animate="animate"
+          transition={{ delay: 0.15 }}
+        />
       </div>
-      <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-full mb-2" />
-      <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-5/6 mb-4" />
+      <motion.div
+        className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-full mb-2"
+        variants={shimmerVariants}
+        animate="animate"
+        transition={{ delay: 0.2 }}
+      />
+      <motion.div
+        className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-5/6 mb-4"
+        variants={shimmerVariants}
+        animate="animate"
+        transition={{ delay: 0.25 }}
+      />
       <div className="flex gap-2">
-        <div className="h-6 w-16 bg-gray-200 dark:bg-slate-700 rounded-full" />
-        <div className="h-6 w-20 bg-gray-200 dark:bg-slate-700 rounded-full" />
-        <div className="h-6 w-14 bg-gray-200 dark:bg-slate-700 rounded-full" />
+        <motion.div
+          className="h-6 w-16 bg-gray-200 dark:bg-slate-700 rounded-full"
+          variants={shimmerVariants}
+          animate="animate"
+          transition={{ delay: 0.3 }}
+        />
+        <motion.div
+          className="h-6 w-20 bg-gray-200 dark:bg-slate-700 rounded-full"
+          variants={shimmerVariants}
+          animate="animate"
+          transition={{ delay: 0.35 }}
+        />
+        <motion.div
+          className="h-6 w-14 bg-gray-200 dark:bg-slate-700 rounded-full"
+          variants={shimmerVariants}
+          animate="animate"
+          transition={{ delay: 0.4 }}
+        />
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 // Skeleton for stat cards (gradient style)
 export const StatCardSkeleton: React.FC = () => {
+  const shimmerVariants = {
+    animate: {
+      backgroundPosition: ['200% 0%', '-200% 0%'],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: 'linear' as const,
+      },
+    },
+  };
+
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700 animate-pulse">
-      <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-16 mx-auto mb-2" />
-      <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-20 mx-auto" />
-    </div>
+    <motion.div
+      className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center border border-gray-100 dark:border-slate-700"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div
+        className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-16 mx-auto mb-2"
+        variants={shimmerVariants}
+        animate="animate"
+      />
+      <motion.div
+        className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-20 mx-auto"
+        variants={shimmerVariants}
+        animate="animate"
+        transition={{ delay: 0.1 }}
+      />
+    </motion.div>
   );
 };
 
 // Skeleton for large stat cards with icons
 export const LargeStatCardSkeleton: React.FC = () => {
+  const shimmerVariants = {
+    animate: {
+      backgroundPosition: ['200% 0%', '-200% 0%'],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: 'linear' as const,
+      },
+    },
+  };
+
   return (
-    <div className="bg-gray-200 dark:bg-slate-700 rounded-xl p-6 animate-pulse">
+    <motion.div
+      className="bg-gray-200 dark:bg-slate-700 rounded-xl p-6"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <div className="h-4 bg-gray-300 dark:bg-slate-600 rounded w-20 mb-2" />
-          <div className="h-10 bg-gray-300 dark:bg-slate-600 rounded w-24" />
+          <motion.div
+            className="h-4 bg-gray-300 dark:bg-slate-600 rounded w-20 mb-2"
+            variants={shimmerVariants}
+            animate="animate"
+          />
+          <motion.div
+            className="h-10 bg-gray-300 dark:bg-slate-600 rounded w-24"
+            variants={shimmerVariants}
+            animate="animate"
+            transition={{ delay: 0.1 }}
+          />
         </div>
-        <div className="w-12 h-12 bg-gray-300 dark:bg-slate-600 rounded-lg" />
+        <motion.div
+          className="w-12 h-12 bg-gray-300 dark:bg-slate-600 rounded-lg"
+          variants={shimmerVariants}
+          animate="animate"
+          transition={{ delay: 0.15 }}
+        />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

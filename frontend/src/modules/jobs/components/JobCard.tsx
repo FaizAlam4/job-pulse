@@ -7,12 +7,14 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Job } from '@/modules/jobs/types';
 import { formatDistanceToNow } from '@/modules/common/utils/dateUtils';
 
 interface JobCardProps {
   job: Job;
   variant?: 'default' | 'compact';
+  index?: number;
 }
 
 // Convert 0-1 score to percentage
@@ -20,16 +22,31 @@ const toPercentage = (score: number): number => {
   return Math.round(score <= 1 ? score * 100 : score);
 };
 
-export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default' }) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', index = 0 }) => {
   const scorePercent = toPercentage(job.score);
   const scoreColor = scorePercent >= 70 ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/40' :
                      scorePercent >= 40 ? 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/40' :
                      'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/40';
 
-  if (variant === 'compact') {
-    return (
-      <Link href={`/jobs/${job._id}`}>
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer border border-gray-100 dark:border-slate-700">
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        delay: index * 0.05,
+      },
+    },
+  };
+
+  const compactContent = (
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ y: -4, boxShadow: '0 12px 24px rgba(0, 0, 0, 0.15)' }}
+      className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 hover:shadow-md cursor-pointer border border-gray-100 dark:border-slate-700 transition-shadow">
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-gray-900 dark:text-white truncate">{job.title}</h3>
@@ -39,14 +56,17 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default' }) =>
               {scorePercent}%
             </span>
           </div>
-        </div>
-      </Link>
-    );
-  }
+    </motion.div>
+  );
 
   return (
     <Link href={`/jobs/${job._id}`}>
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-100 dark:border-slate-700">
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        whileHover={{ y: -6, boxShadow: '0 16px 32px rgba(0, 0, 0, 0.15)' }}
+        className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 hover:shadow-lg cursor-pointer border border-gray-100 dark:border-slate-700 transition-shadow">
         {/* Header */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1 min-w-0 pr-4">
@@ -124,7 +144,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default' }) =>
             </span>
           )}
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 };

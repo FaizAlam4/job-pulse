@@ -29,6 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
     { href: '/', label: 'Jobs' },
     { href: '/top-jobs', label: 'Top Jobs' },
     { href: '/stats', label: 'Stats' },
+    { href: '/tracker', label: 'Tracker' },
   ];
 
   const isActive = (href: string) => {

@@ -123,3 +123,18 @@ select option {
 .dark .job-description hr {
   border-color: #475569 !important;
 }
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Smooth scroll behavior */
+.snap-x {
+  scroll-behavior: smooth;
+}
