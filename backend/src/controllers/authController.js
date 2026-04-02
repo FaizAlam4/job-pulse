@@ -84,9 +84,9 @@ export const login = async (request, reply) => {
     // Find user (include password field)
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return reply.code(401).send({
+      return reply.code(404).send({
         success: false,
-        message: 'Invalid email or password. Please check your credentials and try again.',
+        message: 'No account found with this email address. Please check your email or sign up.',
       });
     }
 
@@ -103,7 +103,7 @@ export const login = async (request, reply) => {
     if (!isPasswordValid) {
       return reply.code(401).send({
         success: false,
-        message: 'Invalid email or password. Please check your credentials and try again.',
+        message: 'Incorrect password. Please try again or reset your password.',
       });
     }
 

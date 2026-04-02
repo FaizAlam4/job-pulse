@@ -27,9 +27,13 @@ export const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose, onSwi
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Reset form when modal closes
+  // Reset form when modal closes, clear errors when it opens
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // Clear errors when modal opens (switching from login)
+      setError('');
+    } else {
+      // Reset everything when modal closes
       setFormData({
         name: '',
         email: '',
