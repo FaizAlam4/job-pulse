@@ -12,6 +12,9 @@ import {
 } from '../controllers/jobController.js';
 import { apiKeyAuth } from '../middleware/apiKeyAuth.js';
 import { registerNotificationRoutes } from './notification.js';
+import { registerAuthRoutes } from './auth.js';
+import trackingRoutes from './tracking.js';
+import insightsRoutes from './insights.js';
 
 /**
  * Register all job routes
@@ -50,6 +53,19 @@ export const registerJobRoutes = async (fastify) => {
 
   // Register notification routes
   await registerNotificationRoutes(fastify);
+  
+  // Register authentication routes
+  await registerAuthRoutes(fastify);
+  
+  // Register tracking routes (protected by auth - handled inside plugin)
+  await fastify.register(trackingRoutes, { 
+    prefix: '/tracking'
+  });
+  
+  // Register insights routes (protected by auth - handled inside plugin)
+  await fastify.register(insightsRoutes, { 
+    prefix: '/insights'
+  });
 };
 
 /**

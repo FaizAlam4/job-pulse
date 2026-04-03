@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/modules/common/hooks/useRedux';
@@ -15,11 +15,17 @@ import {
   selectSimilarJobs,
   selectJobDetailLoading,
   selectJobsError,
+  selectShouldShowDetailSkeleton,
 } from '@/modules/jobs/store/jobsSelectors';
-import { PageLoader } from '@/modules/common/components/Loader';
+import { JobDetailSkeleton } from '@/modules/common/components/Loader';
 import { ErrorState } from '@/modules/common/components/ErrorState';
 import { formatDate, formatDistanceToNow } from '@/modules/common/utils/dateUtils';
 import { Job, SimilarJob } from '@/modules/jobs/types';
+import { useAuth } from '@/contexts/AuthContext';
+import LoginModal from '@/components/auth/LoginModal';
+import SignupModal from '@/components/auth/SignupModal';
+import { trackNewJob } from '@/modules/tracking/store/trackingSlice';
+import { TrackingStatus } from '@/modules/tracking/types';
 
 // Convert 0-1 score to percentage
 const toPercentage = (score: number): number => {
@@ -38,25 +44,105 @@ export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showTrackModal, setShowTrackModal] = useState(false);
+  const [pendingTrackAction, setPendingTrackAction] = useState(false);
+  const [trackingData, setTrackingData] = useState<{
+    status: TrackingStatus;
+    notes: string;
+    priority: number;
+  }>({
+    status: 'saved',
+    notes: '',
+    priority: 3,
+  });
+  
+  const [trackedJob, setTrackedJob] = useState<any>(null);
+  const [isTracking, setIsTracking] = useState(false);
+  
+  // Get tracked jobs from Redux state
+  const { trackedJobs, trackedJobIds } = useAppSelector((state: any) => state.tracking);
+  
   // Import resetFilters action
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { resetFilters } = require('@/modules/filters/store/filtersSlice');
+
+  // Handle track button click
+  const handleTrackClick = () => {
+    if (!isAuthenticated) {
+      setPendingTrackAction(true);
+      setShowLoginModal(true);
+      return;
+    }
+
+    if (trackedJob) {
+      // Already tracked, navigate to tracker page
+      router.push('/tracker');
+    } else {
+      // Show track modal
+      setShowTrackModal(true);
+    }
+  };
+
+  // Handle successful login - open track modal if pending action
+  const handleLoginSuccess = () => {
+    if (pendingTrackAction) {
+      setPendingTrackAction(false);
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        setShowTrackModal(true);
+      }, 100);
+    }
+  };
+
+  // Handle track submission
+  const handleTrackSubmit = async () => {
+    if (!job) return;
+
+    setIsTracking(true);
+    const result = await dispatch(trackNewJob({
+      jobId: job._id,
+      status: trackingData.status,
+      notes: trackingData.notes,
+      priority: trackingData.priority,
+    }) as any);
+
+    setIsTracking(false);
+    if (result.type.endsWith('/fulfilled')) {
+      setShowTrackModal(false);
+      // Navigate to tracker page
+      router.push('/tracker');
+    }
+  };
   
   const job = useAppSelector(selectCurrentJob);
   const similarJobs = useAppSelector(selectSimilarJobs);
   const loading = useAppSelector(selectJobDetailLoading);
+  const showSkeleton = useAppSelector(selectShouldShowDetailSkeleton);
   const error = useAppSelector(selectJobsError);
 
   const jobId = params?.id as string;
-
+  
   useEffect(() => {
     if (jobId) {
       dispatch(fetchJobDetailRequest(jobId));
     }
   }, [dispatch, jobId]);
 
-  if (loading) {
-    return <PageLoader />;
+  // Check if job is already tracked using local state (no API call)
+  useEffect(() => {
+    if (isAuthenticated && jobId && trackedJobIds.includes(jobId)) {
+      const found = trackedJobs.find((t: any) => t.jobId === jobId);
+      setTrackedJob(found || null);
+    } else {
+      setTrackedJob(null);
+    }
+  }, [isAuthenticated, jobId, trackedJobIds, trackedJobs]);
+
+  if (showSkeleton) {
+    return <JobDetailSkeleton />;
   }
 
   if (error) {
@@ -319,9 +405,43 @@ export default function JobDetailPage() {
                   <div className="w-full bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 px-4 py-3 rounded-xl font-medium mb-2">
                     External Link Not Available
                   </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">Search for "{job.title}" on job boards</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Search for &quot;{job.title}&quot; on job boards</p>
                 </div>
               )}
+              
+              {/* Track Button */}
+              <button
+                onClick={handleTrackClick}
+                disabled={isTracking}
+                className={`w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all ${
+                  trackedJob
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30'
+                    : 'bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600'
+                } ${isTracking ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {isTracking ? (
+                  <>
+                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Tracking...</span>
+                  </>
+                ) : trackedJob ? (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Tracked • View Tracker</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>Track this Job</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Job Details */}
@@ -418,6 +538,149 @@ export default function JobDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Auth Modals */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          setPendingTrackAction(false);
+        }}
+        onSwitchToSignup={() => {
+          setShowLoginModal(false);
+          setShowSignupModal(true);
+        }}
+        onLoginSuccess={handleLoginSuccess}
+      />
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onSwitchToLogin={() => {
+          setShowSignupModal(false);
+          setShowLoginModal(true);
+        }}
+      />
+
+      {/* Track Job Modal */}
+      {showTrackModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 transition-opacity bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80"
+              onClick={() => setShowTrackModal(false)}
+            />
+
+            {/* Modal panel */}
+            <div className="inline-block w-full max-w-md my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-slate-800 shadow-xl rounded-2xl">
+              {/* Header */}
+              <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-slate-700">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Track Application
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {job.title} at {job.company}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowTrackModal(false)}
+                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Application Status
+                  </label>
+                  <select
+                    value={trackingData.status}
+                    onChange={(e) => setTrackingData({ ...trackingData, status: e.target.value as TrackingStatus })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="saved">Saved</option>
+                    <option value="applied">Applied</option>
+                    <option value="phone-screen">Phone Screen</option>
+                    <option value="interview">Interview</option>
+                    <option value="offer">Offer</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+
+                {/* Priority */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Priority
+                  </label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setTrackingData({ ...trackingData, priority: p })}
+                        className={`flex-1 px-3 py-2 rounded-lg border-2 transition-all ${
+                          trackingData.priority === p
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                            : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                        }`}
+                      >
+                        {'⭐'.repeat(p)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    value={trackingData.notes}
+                    onChange={(e) => setTrackingData({ ...trackingData, notes: e.target.value })}
+                    rows={4}
+                    placeholder="Add notes about this application..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
+                <button
+                  onClick={() => setShowTrackModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleTrackSubmit}
+                  disabled={isTracking}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isTracking ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Tracking...
+                    </>
+                  ) : (
+                    'Track Job'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
