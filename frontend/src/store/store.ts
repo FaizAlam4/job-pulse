@@ -16,8 +16,8 @@ export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      // Disable thunk since we're using saga
-      thunk: false,
+      // Enable thunk for async actions (tracking uses createAsyncThunk)
+      thunk: true,
       // Disable serializable check for saga actions
       serializableCheck: false,
     }).concat(sagaMiddleware),

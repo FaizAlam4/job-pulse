@@ -5,38 +5,359 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginModal from '@/components/auth/LoginModal';
 import SignupModal from '@/components/auth/SignupModal';
+import { useAppDispatch, useAppSelector } from '@/modules/common/hooks/useRedux';
+import {
+  fetchTrackedJobs,
+  updateTracking,
+  removeTrackedJob,
+  fetchAnalytics,
+  clearError,
+  updateTrackingStatusLocally,
+  updateTrackingLocally,
+} from '@/modules/tracking/store/trackingSlice';
+import {
+  TrackedJob,
+  TrackingStatus,
+  TRACKING_STATUS_LABELS,
+  TRACKING_STATUS_COLORS,
+} from '@/modules/tracking/types';
+import { KanbanColumn } from '@/modules/tracking/components/KanbanColumn';
+import { JobDetailsModal } from '@/modules/tracking/components/JobDetailsModal';
+
+const KANBAN_COLUMNS: TrackingStatus[] = [
+  'saved',
+  'applied',
+  'phone-screen',
+  'interview',
+  'offer',
+  'rejected',
+];
 
 export default function TrackerPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const dispatch = useAppDispatch();
+  
+  const { trackedJobs, analytics, isLoading, error } = useAppSelector(
+    (state: any) => state.tracking
+  );
+
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [draggedJob, setDraggedJob] = useState<TrackedJob | null>(null);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [showJobDetails, setShowJobDetails] = useState(false);
+
+  // Derive selectedJob from Redux state so it stays in sync with updates
+  const selectedJob = selectedJobId 
+    ? trackedJobs.find((job: TrackedJob) => job._id === selectedJobId) || null 
+    : null;
+
+  // Fetch tracked jobs when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchTrackedJobs() as any);
+      dispatch(fetchAnalytics() as any);
+    }
+  }, [isAuthenticated, dispatch]);
+
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        dispatch(clearError());
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, dispatch]);
+
+  // Group jobs by status
+  const jobsByStatus = KANBAN_COLUMNS.reduce((acc, status) => {
+    acc[status] = trackedJobs.filter((job: TrackedJob) => job.status === status);
+    return acc;
+  }, {} as Record<TrackingStatus, TrackedJob[]>);
+
+  // Calculate counts locally from trackedJobs for immediate UI updates
+  const jobCountByStatus = KANBAN_COLUMNS.reduce((acc, status) => {
+    acc[status] = jobsByStatus[status].length;
+    return acc;
+  }, {} as Record<TrackingStatus, number>);
+
+  // Handle drag and drop
+  const handleDragStart = (job: TrackedJob) => {
+    setDraggedJob(job);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedJob(null);
+  };
+
+  const handleDrop = async (status: TrackingStatus) => {
+    if (draggedJob && draggedJob.status !== status) {
+      // Optimistic update - update UI immediately
+      dispatch(updateTrackingStatusLocally({ trackingId: draggedJob._id, status }));
+      
+      // Then sync with backend
+      dispatch(
+        updateTracking({
+          trackingId: draggedJob._id,
+          data: { status, statusChangeNotes: `Changed to ${TRACKING_STATUS_LABELS[status]}` },
+        }) as any
+      );
+    }
+    setDraggedJob(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleJobClick = (job: TrackedJob) => {
+    setSelectedJobId(job._id);
+    setShowJobDetails(true);
+  };
+
+  const handleDeleteJob = async (trackingId: string) => {
+    if (confirm('Are you sure you want to remove this job from tracking?')) {
+      await dispatch(removeTrackedJob(trackingId) as any);
+      setShowJobDetails(false);
+      setSelectedJobId(null);
+    }
+  };
 
   // If authenticated, show tracker content
   if (isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
-            Your Application Tracker
-          </h1>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 border border-gray-100 dark:border-slate-700">
-            <p className="text-gray-600 dark:text-gray-400 text-center text-lg">
-              🎉 Welcome! Application tracker coming soon...
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                  Application Tracker
+                </h1>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">
+                  Manage your job applications in one place
+                </p>
+              </div>
+              
+              {/* View Toggle */}
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg p-1 border border-gray-200 dark:border-slate-700">
+                <button
+                  onClick={() => setViewMode('kanban')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'kanban'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  📊 Kanban
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  📋 List
+                </button>
+              </div>
+            </div>
+
+            {/* Stats Summary */}
+            {trackedJobs.length > 0 && (
+              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {KANBAN_COLUMNS.map((status) => (
+                  <div
+                    key={status}
+                    className={`${TRACKING_STATUS_COLORS[status].bg} ${TRACKING_STATUS_COLORS[status].border} border rounded-lg p-4`}
+                  >
+                    <div className={`text-2xl font-bold ${TRACKING_STATUS_COLORS[status].text}`}>
+                      {jobCountByStatus[status]}
+                    </div>
+                    <div className={`text-sm ${TRACKING_STATUS_COLORS[status].text}`}>
+                      {TRACKING_STATUS_LABELS[status]}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <p className="text-red-800 dark:text-red-200">{error}</p>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          )}
+
+          {/* Kanban View */}
+          {!isLoading && viewMode === 'kanban' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              {KANBAN_COLUMNS.map((status) => (
+                <KanbanColumn
+                  key={status}
+                  status={status}
+                  jobs={jobsByStatus[status]}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onJobClick={handleJobClick}
+                  isDraggingOver={draggedJob?.status !== status}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* List View */}
+          {!isLoading && viewMode === 'list' && (
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-slate-700">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                  <thead className="bg-gray-50 dark:bg-slate-900">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Job
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Company
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Applied
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Priority
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+                    {trackedJobs.map((job: TrackedJob) => (
+                      <tr
+                        key={job._id}
+                        onClick={() => handleJobClick(job)}
+                        className="hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {job.jobSnapshot.title}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {job.jobSnapshot.location}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          {job.jobSnapshot.company}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              TRACKING_STATUS_COLORS[job.status as TrackingStatus].bg
+                            } ${TRACKING_STATUS_COLORS[job.status as TrackingStatus].text}`}
+                          >
+                            {TRACKING_STATUS_LABELS[job.status as TrackingStatus]}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {job.appliedAt
+                            ? new Date(job.appliedAt).toLocaleDateString()
+                            : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {'⭐'.repeat(job.priority)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteJob(job._id);
+                            }}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && trackedJobs.length === 0 && (
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-slate-700">
+              <div className="text-6xl mb-4">📊</div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No applications tracked yet
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Start tracking jobs by clicking &quot;Track this Job&quot; on any job listing
+              </p>
+              <a
+                href="/"
+                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Browse Jobs
+              </a>
+            </div>
+          )}
         </div>
+
+        {/* Job Details Modal */}
+        <AnimatePresence>
+          {showJobDetails && selectedJob && (
+            <JobDetailsModal
+              job={selectedJob}
+              onClose={() => {
+                setShowJobDetails(false);
+                setSelectedJobId(null);
+              }}
+              onDelete={handleDeleteJob}
+              onUpdate={(data) => {
+                // Optimistic update for immediate UI feedback
+                dispatch(updateTrackingLocally({ trackingId: selectedJob._id, updates: data }));
+                
+                // Then sync with backend
+                dispatch(
+                  updateTracking({
+                    trackingId: selectedJob._id,
+                    data,
+                  }) as any
+                );
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
     );
   }
 
   // Loading state - but keep modals rendered
-  if (isLoading && !showLoginModal && !showSignupModal) {
+  if (authLoading && !showLoginModal && !showSignupModal) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -83,11 +404,6 @@ export default function TrackerPage() {
       icon: '📝',
       title: 'Add Notes',
       description: 'Keep detailed notes for each application',
-    },
-    {
-      icon: '⏰',
-      title: 'Set Reminders',
-      description: 'Never miss a follow-up or interview',
     },
     {
       icon: '📈',
@@ -175,7 +491,7 @@ export default function TrackerPage() {
             Application Tracker
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Sign up to track your job applications, set reminders, and never miss an opportunity!
+            Sign up to track your job applications and never miss an opportunity!
           </p>
         </motion.div>
 

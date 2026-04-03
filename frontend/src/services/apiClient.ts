@@ -139,9 +139,17 @@ export const smartGet = async <T>(url: string, config?: any): Promise<AxiosRespo
   }
 };
 
-// Request interceptor - log requests
+// Request interceptor - add auth token and log requests
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Add auth token if available
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    
     if (process.env.NODE_ENV === 'development') {
       console.log(`🚀 [API] ${config.method?.toUpperCase()} ${config.url}`);
     }

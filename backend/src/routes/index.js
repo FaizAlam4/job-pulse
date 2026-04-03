@@ -13,6 +13,7 @@ import {
 import { apiKeyAuth } from '../middleware/apiKeyAuth.js';
 import { registerNotificationRoutes } from './notification.js';
 import { registerAuthRoutes } from './auth.js';
+import trackingRoutes from './tracking.js';
 
 /**
  * Register all job routes
@@ -54,6 +55,11 @@ export const registerJobRoutes = async (fastify) => {
   
   // Register authentication routes
   await registerAuthRoutes(fastify);
+  
+  // Register tracking routes (protected by auth - handled inside plugin)
+  await fastify.register(trackingRoutes, { 
+    prefix: '/tracking'
+  });
 };
 
 /**

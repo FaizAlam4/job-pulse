@@ -9,6 +9,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { TrackingInitializer } from '@/modules/tracking/components/TrackingInitializer';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -18,7 +19,9 @@ export const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
     <Provider store={store}>
       <AuthProvider>
-        {children}
+        <TrackingInitializer>
+          {children}
+        </TrackingInitializer>
       </AuthProvider>
     </Provider>
   );
