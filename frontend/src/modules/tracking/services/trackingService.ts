@@ -31,6 +31,8 @@ export const getTrackedJobs = async (params?: {
   status?: string;
   sortBy?: string;
   order?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
 }): Promise<TrackingResponse<TrackedJob[]>> => {
   const response = await apiClient.get(TRACKING_ENDPOINT, { params });
   return response.data;

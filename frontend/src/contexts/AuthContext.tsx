@@ -86,10 +86,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     authService.logout();
     setUser(null);
-    // Optionally redirect to home
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
-    }
   };
 
   const updateUser = async (updates: Partial<User>) => {

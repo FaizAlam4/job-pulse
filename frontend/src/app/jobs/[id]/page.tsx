@@ -48,6 +48,7 @@ export default function JobDetailPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [showTrackModal, setShowTrackModal] = useState(false);
+  const [pendingTrackAction, setPendingTrackAction] = useState(false);
   const [trackingData, setTrackingData] = useState<{
     status: TrackingStatus;
     notes: string;
@@ -71,6 +72,7 @@ export default function JobDetailPage() {
   // Handle track button click
   const handleTrackClick = () => {
     if (!isAuthenticated) {
+      setPendingTrackAction(true);
       setShowLoginModal(true);
       return;
     }
@@ -81,6 +83,17 @@ export default function JobDetailPage() {
     } else {
       // Show track modal
       setShowTrackModal(true);
+    }
+  };
+
+  // Handle successful login - open track modal if pending action
+  const handleLoginSuccess = () => {
+    if (pendingTrackAction) {
+      setPendingTrackAction(false);
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        setShowTrackModal(true);
+      }, 100);
     }
   };
 
@@ -529,11 +542,15 @@ export default function JobDetailPage() {
       {/* Auth Modals */}
       <LoginModal
         isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
+        onClose={() => {
+          setShowLoginModal(false);
+          setPendingTrackAction(false);
+        }}
         onSwitchToSignup={() => {
           setShowLoginModal(false);
           setShowSignupModal(true);
         }}
+        onLoginSuccess={handleLoginSuccess}
       />
       <SignupModal
         isOpen={showSignupModal}

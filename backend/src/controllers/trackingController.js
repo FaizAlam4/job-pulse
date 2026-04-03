@@ -102,11 +102,18 @@ export const trackJob = async (request, reply) => {
 /**
  * Get all tracked jobs for current user
  * GET /api/tracking
+ * Supports pagination: ?page=1&limit=20
  */
 export const getTrackedJobs = async (request, reply) => {
   try {
     const userId = request.user.userId;
-    const { status, sortBy = 'updatedAt', order = 'desc' } = request.query;
+    const { 
+      status, 
+      sortBy = 'updatedAt', 
+      order = 'desc',
+      page = 1,
+      limit = 1000, // Default high limit for backward compatibility
+    } = request.query;
 
     const query = { userId };
     if (status) {
@@ -116,12 +123,37 @@ export const getTrackedJobs = async (request, reply) => {
     const sortOptions = {};
     sortOptions[sortBy] = order === 'desc' ? -1 : 1;
 
-    const applications = await Tracking.find(query).sort(sortOptions);
+    // Convert to numbers
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    // Calculate skip
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count for pagination metadata
+    const totalCount = await Tracking.countDocuments(query);
+
+    // Fetch paginated data
+    const applications = await Tracking.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limitNum);
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / limitNum);
 
     return reply.send({
       success: true,
       count: applications.length,
       data: applications,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalCount,
+        limit: limitNum,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
     });
 
   } catch (error) {

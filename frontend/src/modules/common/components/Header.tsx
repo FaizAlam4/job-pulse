@@ -34,9 +34,9 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
   const navLinks = [
     { href: '/', label: 'Jobs' },
-    { href: '/top-jobs', label: 'Top Jobs' },
     { href: '/stats', label: 'Stats' },
     { href: '/tracker', label: 'Tracker' },
+    { href: '/insights', label: 'Personal Insights' },
   ];
 
   const isActive = (href: string) => {
@@ -51,16 +51,15 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
 
   const handleLogout = () => {
     logout();
-    router.push('/');
     setMobileMenuOpen(false);
   };
 
   return (
     <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 sticky top-0 z-50 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-12">
-          {/* Logo */}
-          <Link href="/" onClick={handleNavClick} className="flex items-center space-x-2">
+        <div className="flex items-center justify-between h-12">
+          {/* Logo - fixed width */}
+          <Link href="/" onClick={handleNavClick} className="flex items-center space-x-2 flex-shrink-0">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg
                 className="w-5 h-5 text-white"
@@ -79,14 +78,14 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
             <span className="text-xl font-bold text-gray-900 dark:text-white">JobPulse</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-14 lg:space-x-20 xl:space-x-28 2xl:space-x-36">
+          {/* Desktop Navigation - centered with flex-1 */}
+          <nav className="hidden md:flex flex-1 items-center justify-center space-x-6 lg:space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={handleNavClick}
-                className={`font-medium transition-colors ${
+                className={`font-medium transition-colors whitespace-nowrap ${
                   isActive(link.href)
                     ? 'text-blue-600 dark:text-blue-400'
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
@@ -98,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
           </nav>
 
           {/* Right section */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 flex-shrink-0">
             {children}
             {/* Desktop: NotificationBell, Sign In/Logout, then Dark Mode Toggle */}
             <div className="hidden md:flex items-center space-x-2">
@@ -140,8 +139,24 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 )}
               </button>
             </div>
-            {/* Mobile: Hamburger, NotificationBell, Logout (if auth), and Dark Mode Toggle */}
+            {/* Mobile: Just Hamburger and Dark Mode Toggle (cleaner) */}
             <div className="flex md:hidden items-center space-x-2">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                aria-label="Toggle dark mode"
+                suppressHydrationWarning
+              >
+                {isDark ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
               <button 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 rounded-md text-gray-400 dark:text-gray-300 hover:text-gray-500 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700"
@@ -178,43 +193,6 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                   </svg>
                 )}
               </button>
-              <NotificationBell />
-              {isAuthenticated ? (
-                <button
-                  onClick={handleLogout}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                  aria-label="Logout"
-                  title="Logout"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
-                  aria-label="Sign In"
-                >
-                  Sign In
-                </button>
-              )}
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
-                aria-label="Toggle dark mode"
-                suppressHydrationWarning
-              >
-                {isDark ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                )}
-              </button>
             </div>
           </div>
         </div>
@@ -241,6 +219,44 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
                 {link.label}
               </Link>
             ))}
+            
+            {/* Divider */}
+            <div className="border-t border-gray-200 dark:border-slate-700 my-2" />
+            
+            {/* Notification in mobile menu */}
+            <div className="px-3 py-2 flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-300 font-medium">Notifications</span>
+              <NotificationBell />
+            </div>
+            
+            {/* Auth button in mobile menu */}
+            {isAuthenticated ? (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowLoginModal(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Sign In
+              </button>
+            )}
           </nav>
         </div>
       )}

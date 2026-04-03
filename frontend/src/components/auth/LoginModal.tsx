@@ -14,9 +14,17 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToSignup: () => void;
+  onLoginSuccess?: () => void;
+  prefillDemo?: boolean;
 }
 
-export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSignup }) => {
+// Demo credentials for interviewers
+const DEMO_CREDENTIALS = {
+  email: 'demo@jobpulse.com',
+  password: 'Demo@123',
+};
+
+export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToSignup, onLoginSuccess, prefillDemo }) => {
   const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -25,6 +33,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitc
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Auto-fill demo credentials when prefillDemo is true
+  useEffect(() => {
+    if (isOpen && prefillDemo) {
+      setFormData(DEMO_CREDENTIALS);
+    }
+  }, [isOpen, prefillDemo]);
 
   // Clear error when modal opens
   useEffect(() => {
@@ -56,6 +71,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitc
       // Close modal after brief success animation
       setTimeout(() => {
         handleClose();
+        // Call onLoginSuccess callback if provided
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       }, 800);
     } catch (err: any) {
       const errorMessage = err.message || 'Login failed. Please check your credentials.';
@@ -162,6 +181,28 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitc
                     <p className="text-gray-600 dark:text-gray-400">
                       Sign in to continue tracking your applications
                     </p>
+                  </motion.div>
+
+                  {/* Demo credentials auto-fill */}
+                  <motion.div
+                    className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                      <span className="font-semibold">Demo Account:</span> For quick access
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(DEMO_CREDENTIALS)}
+                      className="w-full py-2 px-3 bg-blue-100 dark:bg-blue-800/50 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-200 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Auto-fill Demo Credentials
+                    </button>
                   </motion.div>
 
                   {/* Error message */}

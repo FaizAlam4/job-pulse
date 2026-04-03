@@ -139,6 +139,14 @@ export interface TrackingResponse<T = any> {
   data?: T;
   error?: string;
   count?: number;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
 }
 
 // UI Helpers

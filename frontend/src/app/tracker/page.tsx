@@ -42,17 +42,19 @@ export default function TrackerPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const dispatch = useAppDispatch();
   
-  const { trackedJobs, analytics, isLoading, error } = useAppSelector(
+  const { trackedJobs, analytics, isLoading, error, pagination } = useAppSelector(
     (state: any) => state.tracking
   );
 
-  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [prefillDemo, setPrefillDemo] = useState(false);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [draggedJob, setDraggedJob] = useState<TrackedJob | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [showJobDetails, setShowJobDetails] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20); // Fixed at 20 items per page for list view
 
   // Derive selectedJob from Redux state so it stays in sync with updates
   const selectedJob = selectedJobId 
@@ -62,10 +64,19 @@ export default function TrackerPage() {
   // Fetch tracked jobs when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      dispatch(fetchTrackedJobs() as any);
+      // Fetch with pagination only for list view
+      const params = viewMode === 'list' 
+        ? { page: currentPage, limit: itemsPerPage }
+        : undefined;
+      dispatch(fetchTrackedJobs(params) as any);
       dispatch(fetchAnalytics() as any);
     }
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, viewMode, currentPage, itemsPerPage, dispatch]);
+
+  // Reset to page 1 when switching views
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [viewMode]);
 
   // Clear error after 5 seconds
   useEffect(() => {
@@ -209,29 +220,70 @@ export default function TrackerPage() {
 
           {/* Kanban View */}
           {!isLoading && viewMode === 'kanban' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-              {KANBAN_COLUMNS.map((status) => (
-                <KanbanColumn
-                  key={status}
-                  status={status}
-                  jobs={jobsByStatus[status]}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onJobClick={handleJobClick}
-                  isDraggingOver={draggedJob?.status !== status}
-                />
-              ))}
+            <div className="space-y-3">
+              {/* Responsive container: horizontal scroll on mobile/tablet, grid on desktop */}
+              <div className="lg:hidden">
+                {/* Mobile/Tablet: Horizontal scroll */}
+                <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                  {KANBAN_COLUMNS.map((status) => (
+                    <div key={status} className="flex-shrink-0 w-72 snap-center">
+                      <KanbanColumn
+                        status={status}
+                        jobs={jobsByStatus[status]}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onJobClick={handleJobClick}
+                        isDraggingOver={draggedJob?.status !== status}
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Scroll indicator dots */}
+                <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <div className="flex gap-1">
+                      {KANBAN_COLUMNS.map((_, i) => (
+                        <span key={i} className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+                      ))}
+                    </div>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Desktop: Grid layout */}
+              <div className="hidden lg:grid lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                {KANBAN_COLUMNS.map((status) => (
+                  <KanbanColumn
+                    key={status}
+                    status={status}
+                    jobs={jobsByStatus[status]}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onJobClick={handleJobClick}
+                    isDraggingOver={draggedJob?.status !== status}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
           {/* List View */}
           {!isLoading && viewMode === 'list' && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-slate-700">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
-                  <thead className="bg-gray-50 dark:bg-slate-900">
+                  <thead className="bg-gray-50 dark:bg-slate-900 sticky top-0 z-10">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Job
@@ -304,6 +356,65 @@ export default function TrackerPage() {
                   </tbody>
                 </table>
               </div>
+              
+              {/* Pagination Controls */}
+              {pagination && pagination.totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span>
+                      Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, pagination.totalCount)} of {pagination.totalCount} applications
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={!pagination.hasPrevPage}
+                      className="px-3 py-1 text-sm rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        // Show first page, last page, current page and adjacent pages
+                        let pageNum;
+                        if (pagination.totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= pagination.totalPages - 2) {
+                          pageNum = pagination.totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                              currentPage === pageNum
+                                ? 'bg-blue-600 text-white'
+                                : 'border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                      disabled={!pagination.hasNextPage}
+                      className="px-3 py-1 text-sm rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -423,179 +534,77 @@ export default function TrackerPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4 sm:px-6 lg:px-8">
       <motion.div
         className="max-w-4xl mx-auto"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Lock Icon with Animation */}
+        {/* Hero Section - Compact with CTA */}
         <motion.div
-          className="flex justify-center mb-8"
+          className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 md:p-8 border border-gray-200 dark:border-slate-700 mb-8"
           variants={itemVariants}
         >
-          <motion.div
-            className="relative"
-            variants={lockVariants}
-            initial="locked"
-            whileHover="shake"
-          >
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-2xl">
-              <svg
-                className="w-12 h-12 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
-            </div>
-            {/* Animated particles */}
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            {/* Icon */}
             <motion.div
-              className="absolute -top-2 -right-2 w-4 h-4 bg-blue-400 rounded-full"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-            <motion.div
-              className="absolute -bottom-2 -left-2 w-3 h-3 bg-indigo-400 rounded-full"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                delay: 0.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-          </motion.div>
-        </motion.div>
-
-        {/* Heading */}
-        <motion.div className="text-center mb-12" variants={itemVariants}>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Application Tracker
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Sign up to track your job applications and never miss an opportunity!
-          </p>
-        </motion.div>
-
-        {/* Features Horizontal Scroll */}
-        <motion.div variants={itemVariants} className="mb-12">
-          <div className="relative">
-            {/* Scroll container */}
-            <div className="flex gap-6 overflow-x-auto pb-4 px-1 snap-x snap-mandatory scrollbar-hide">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-slate-700 hover:shadow-xl transition-shadow flex-shrink-0 w-72 snap-center"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 + index * 0.1, duration: 0.4 }}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                >
-                  <div className="text-4xl mb-3">{feature.icon}</div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {feature.description}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-            
-            {/* Gradient fade hint on right */}
-            <div className="absolute top-0 right-0 bottom-4 w-24 bg-gradient-to-l from-gray-50 via-gray-50/80 to-transparent dark:from-slate-900 dark:via-slate-900/80 dark:to-transparent pointer-events-none" />
-            
-            {/* Scroll hint arrow (visible on hover) */}
-            <motion.div
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-500 text-white rounded-full p-2 shadow-lg pointer-events-none hidden md:block"
-              animate={{
-                x: [0, 10, 0],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+              className="flex-shrink-0 mx-auto md:mx-0"
+              variants={lockVariants}
+              initial="locked"
+              whileHover="shake"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+              </div>
             </motion.div>
+            
+            {/* Title & Description */}
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Application Tracker
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Track your job applications from applied to offer
+              </p>
+            </div>
           </div>
           
-          {/* Scroll Indicator for Mobile */}
-          <div className="flex justify-center gap-2 mt-4 md:hidden">
-            {features.map((_, index) => (
-              <div
-                key={index}
-                className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"
-              />
-            ))}
-          </div>
-        </motion.div>
-
-        {/* CTA Buttons */}
-        <motion.div
-          className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-200 dark:border-slate-700"
-          variants={itemVariants}
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
-              Ready to Organize Your Job Search?
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Join thousands of job seekers tracking their applications efficiently
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* CTA Buttons - Prominent */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
             <motion.button
-              onClick={() => setShowSignupModal(true)}
-              className="relative px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-lg shadow-lg overflow-hidden"
-              onHoverStart={() => setHoveredButton('signup')}
-              onHoverEnd={() => setHoveredButton(null)}
-              whileHover={{ scale: 1.05, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+              onClick={() => {
+                setPrefillDemo(true);
+                setShowLoginModal(true);
+              }}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold shadow-lg"
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600"
-                initial={{ x: '100%' }}
-                animate={{ x: hoveredButton === 'signup' ? '0%' : '100%' }}
-                transition={{ duration: 0.3 }}
-              />
-              <span className="relative flex items-center justify-center gap-2">
+              <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Sign Up Free
+                Try Demo
               </span>
             </motion.button>
-
+            
             <motion.button
               onClick={() => setShowLoginModal(true)}
-              className="relative px-8 py-4 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl font-semibold text-lg shadow-lg border-2 border-gray-200 dark:border-slate-600"
-              onHoverStart={() => setHoveredButton('signin')}
-              onHoverEnd={() => setHoveredButton(null)}
-              whileHover={{ scale: 1.05, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
+              className="flex-1 px-6 py-3 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl font-semibold border-2 border-gray-200 dark:border-slate-600"
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <span className="flex items-center justify-center gap-2">
@@ -605,59 +614,102 @@ export default function TrackerPage() {
                 Sign In
               </span>
             </motion.button>
+            
+            <motion.button
+              onClick={() => setShowSignupModal(true)}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Sign Up Free
+              </span>
+            </motion.button>
           </div>
-
-          {/* Trust Indicators */}
-          <motion.div
-            className="mt-8 pt-8 border-t border-gray-200 dark:border-slate-700"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
-          >
-            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                No credit card required
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                100% Private & Secure
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Setup in 30 seconds
-              </div>
-            </div>
-          </motion.div>
+          
+          {/* Trust indicators - inline */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 text-xs text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              No credit card
+            </span>
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              100% Free
+            </span>
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              30 sec setup
+            </span>
+          </div>
         </motion.div>
 
-        {/* Bottom Decoration */}
-        <motion.div
-          className="mt-12 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 0.5 }}
-        >
-          <p className="text-gray-500 dark:text-gray-500 text-sm">
-            Already have saved jobs? They'll be automatically synced when you sign up! 🎉
-          </p>
+        {/* Features Section - Horizontal scroll */}
+        <motion.div variants={itemVariants}>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 text-center">
+            What you can do
+          </h2>
+          <div className="flex gap-4 overflow-x-auto pb-4 px-1 snap-x snap-mandatory scrollbar-hide">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-slate-700 flex-shrink-0 w-56 snap-center"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
+                whileHover={{ scale: 1.05, y: -3 }}
+              >
+                <div className="text-3xl mb-3">{feature.icon}</div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                  {feature.title}
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+          {/* Scroll indicator */}
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <div className="flex gap-1">
+                {features.map((_, i) => (
+                  <span key={i} className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+                ))}
+              </div>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
         </motion.div>
       </motion.div>
 
       {/* Modals */}
       <LoginModal
         isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
+        onClose={() => {
+          setShowLoginModal(false);
+          setPrefillDemo(false);
+        }}
         onSwitchToSignup={() => {
           setShowLoginModal(false);
+          setPrefillDemo(false);
           setShowSignupModal(true);
         }}
+        prefillDemo={prefillDemo}
       />
       <SignupModal
         isOpen={showSignupModal}

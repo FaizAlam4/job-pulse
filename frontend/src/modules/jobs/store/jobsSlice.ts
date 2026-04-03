@@ -88,16 +88,8 @@ const jobsSlice = createSlice({
     fetchJobsSuccess: (state, action: PayloadAction<{ jobs: Job[]; pagination: PaginationMeta }>) => {
       state.isLoading = false;
       state.hasFetchedJobs = true;
-      // If page > 1, append jobs; else, replace
-      const page = action.payload.pagination?.currentPage || 1;
-      if (page > 1) {
-        // Avoid duplicates by _id
-        const existingIds = new Set(state.jobs.map(j => j._id));
-        const newJobs = action.payload.jobs.filter(j => !existingIds.has(j._id));
-        state.jobs = [...state.jobs, ...newJobs];
-      } else {
-        state.jobs = action.payload.jobs;
-      }
+      // Always replace jobs for pagination (not infinite scroll)
+      state.jobs = action.payload.jobs;
       state.pagination = action.payload.pagination;
     },
     fetchJobsFailure: (state, action: PayloadAction<string>) => {

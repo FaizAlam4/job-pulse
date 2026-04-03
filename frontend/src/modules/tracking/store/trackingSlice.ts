@@ -36,6 +36,14 @@ interface TrackingState {
   error: string | null;
   lastSync: number | null;
   isOffline: boolean;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  } | null;
 }
 
 const initialState: TrackingState = {
@@ -50,26 +58,35 @@ const initialState: TrackingState = {
   error: null,
   lastSync: null,
   isOffline: false,
+  pagination: null,
 };
 
 // Async thunks
 export const fetchTrackedJobs = createAsyncThunk(
   'tracking/fetchTrackedJobs',
-  async (params: { status?: TrackingStatus; sortBy?: string; order?: 'asc' | 'desc' } | undefined, { rejectWithValue }) => {
+  async (params: { status?: TrackingStatus; sortBy?: string; order?: 'asc' | 'desc'; page?: number; limit?: number } | undefined, { rejectWithValue }) => {
     try {
       const response = await trackingService.getTrackedJobs(params);
       const jobs = response.data || [];
       
-      // Save to offline storage
-      await saveTrackedJobs(jobs);
-      updateLastSync();
+      // Save to offline storage (only if not paginated or first page)
+      if (!params?.page || params.page === 1) {
+        await saveTrackedJobs(jobs);
+        updateLastSync();
+      }
       
-      return jobs;
+      return {
+        jobs,
+        pagination: response.pagination || null,
+      };
     } catch (error: any) {
       // If offline, load from IndexedDB
       if (!navigator.onLine) {
         const offlineJobs = await getTrackedJobsFromDB();
-        return offlineJobs;
+        return {
+          jobs: offlineJobs,
+          pagination: null,
+        };
       }
       return rejectWithValue(error.message);
     }
@@ -275,9 +292,10 @@ const trackingSlice = createSlice({
       })
       .addCase(fetchTrackedJobs.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.trackedJobs = action.payload;
+        state.trackedJobs = action.payload.jobs;
+        state.pagination = action.payload.pagination;
         // Build trackedJobIds for quick lookup
-        state.trackedJobIds = action.payload
+        state.trackedJobIds = action.payload.jobs
           .filter((job: TrackedJob) => job.jobId)
           .map((job: TrackedJob) => job.jobId as string);
         state.lastSync = Date.now();
