@@ -110,7 +110,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   return (
     <div
       className="flex flex-col"
-      style={{ height: 'calc(100vh - 280px)', minHeight: '400px' }}
+      style={{ height: 'calc(100vh - 350px)', minHeight: '400px' }}
       onDragOver={onDragOver}
       onDrop={() => onDrop(status)}
     >

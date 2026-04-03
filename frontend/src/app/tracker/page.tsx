@@ -221,6 +221,19 @@ export default function TrackerPage() {
           {/* Kanban View */}
           {!isLoading && viewMode === 'kanban' && (
             <div className="space-y-3">
+              {/* Mobile tip banner */}
+              <div className="lg:hidden bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-sm text-blue-800 dark:text-blue-200">
+                    <p className="font-medium mb-1">Tip for mobile</p>
+                    <p className="text-xs">Tap any job card to open details and change its status. Or switch to List view for a simpler layout.</p>
+                  </div>
+                </div>
+              </div>
+              
               {/* Responsive container: horizontal scroll on mobile/tablet, grid on desktop */}
               <div className="lg:hidden">
                 {/* Mobile/Tablet: Horizontal scroll */}
@@ -281,7 +294,7 @@ export default function TrackerPage() {
           {/* List View */}
           {!isLoading && viewMode === 'list' && (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-slate-700">
-              <div className="overflow-x-auto max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <div className="overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
                   <thead className="bg-gray-50 dark:bg-slate-900 sticky top-0 z-10">
                     <tr>

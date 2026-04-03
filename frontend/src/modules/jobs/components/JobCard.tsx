@@ -89,9 +89,17 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
             <p className="text-gray-700 dark:text-gray-300 font-medium">{job.company}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${scoreColor}`}>
-              {scorePercent}%
-            </span>
+            <div className="group relative">
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${scoreColor} cursor-help`}>
+                {scorePercent}%
+              </span>
+              <div className="absolute right-0 top-8 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200">
+                <div className="bg-gray-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-xl p-2.5 w-48 whitespace-nowrap">
+                  <div className="font-semibold mb-1">Match Score: {scorePercent}%</div>
+                  <div className="text-[10px] text-gray-300">Based on recency & relevance</div>
+                </div>
+              </div>
+            </div>
             {trackedJob && (
               <span
                 className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${

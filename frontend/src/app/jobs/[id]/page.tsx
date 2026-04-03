@@ -236,7 +236,7 @@ export default function JobDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -386,8 +386,8 @@ export default function JobDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Apply Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
+            {/* Apply Card - Hidden on mobile, shown on desktop */}
+            <div className="hidden lg:block bg-white dark:bg-slate-800 rounded-xl shadow-md border border-gray-100 dark:border-slate-700 p-6">
               {job.sourceUrl ? (
                 <a
                   href={job.sourceUrl}
@@ -681,6 +681,59 @@ export default function JobDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Mobile Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-4 shadow-2xl z-40">
+        <div className="flex gap-3 max-w-5xl mx-auto">
+          {job.sourceUrl ? (
+            <a
+              href={job.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg active:scale-95"
+            >
+              <span>Apply Now</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          ) : (
+            <div className="flex-1 bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 px-4 py-3 rounded-xl font-medium text-center text-sm">
+              No Link Available
+            </div>
+          )}
+          
+          <button
+            onClick={handleTrackClick}
+            disabled={isTracking}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all active:scale-95 ${
+              trackedJob
+                ? 'bg-green-600 text-white shadow-lg'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-slate-600'
+            } ${isTracking ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isTracking ? (
+              <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            ) : trackedJob ? (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Tracked</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span>Track</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

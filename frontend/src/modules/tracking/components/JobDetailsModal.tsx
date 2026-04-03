@@ -29,7 +29,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   onDelete,
   onUpdate,
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'interviews' | 'contacts'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'notes'>('details');
   const [isEditing, setIsEditing] = useState(false);
   const [editedNotes, setEditedNotes] = useState(job.notes || '');
   const [editedStatus, setEditedStatus] = useState(job.status);
@@ -53,7 +53,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-center justify-center min-h-screen px-4 py-8">
         {/* Background overlay */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -68,7 +68,8 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative z-10 inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-slate-800 shadow-xl rounded-2xl"
+          className="relative z-10 inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-slate-800 shadow-xl rounded-2xl flex flex-col"
+          style={{ maxHeight: '90vh' }}
         >
           {/* Header */}
           <div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-slate-700">
@@ -118,7 +119,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           {/* Tabs */}
           <div className="border-b border-gray-200 dark:border-slate-700">
             <nav className="flex px-6 -mb-px space-x-8">
-              {['details', 'notes', 'interviews', 'contacts'].map((tab) => (
+              {['details', 'notes'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
@@ -135,7 +136,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="p-6 max-h-[60vh] overflow-y-auto">
+          <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 300px)' }}>
             {/* Details Tab */}
             {activeTab === 'details' && (
               <div className="space-y-4">
@@ -148,10 +149,10 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                       <select
                         value={editedStatus}
                         onChange={(e) => setEditedStatus(e.target.value as TrackingStatus)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                       >
                         {Object.entries(TRACKING_STATUS_LABELS).map(([value, label]) => (
-                          <option key={value} value={value}>
+                          <option key={value} value={value} className="text-sm">
                             {label}
                           </option>
                         ))}
@@ -165,10 +166,10 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                       <select
                         value={editedPriority}
                         onChange={(e) => setEditedPriority(parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                       >
                         {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
-                          <option key={value} value={value}>
+                          <option key={value} value={value} className="text-sm">
                             {label} {'⭐'.repeat(parseInt(value))}
                           </option>
                         ))}
@@ -179,9 +180,11 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Description</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                    {job.jobSnapshot.description || 'No description available'}
-                  </p>
+                  <div className="max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                      {job.jobSnapshot.description || 'No description available'}
+                    </p>
+                  </div>
                 </div>
 
                 {job.jobSnapshot.sourceUrl && (
@@ -252,99 +255,13 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                     placeholder="Add your notes here..."
                   />
                 ) : (
-                  <div className="prose dark:prose-invert max-w-none">
-                    <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                      {job.notes || 'No notes yet. Click Edit to add notes.'}
-                    </p>
+                  <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                    <div className="prose dark:prose-invert max-w-none">
+                      <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                        {job.notes || 'No notes yet. Click Edit to add notes.'}
+                      </p>
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* Interviews Tab */}
-            {activeTab === 'interviews' && (
-              <div>
-                {job.interviews.length > 0 ? (
-                  <div className="space-y-4">
-                    {job.interviews.map((interview, index) => (
-                      <div
-                        key={index}
-                        className="border border-gray-200 dark:border-slate-700 rounded-lg p-4"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-semibold text-gray-900 dark:text-white">
-                            {interview.type.charAt(0).toUpperCase() + interview.type.slice(1)} Interview
-                          </h4>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {new Date(interview.date).toLocaleString()}
-                          </span>
-                        </div>
-                        {interview.interviewer && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                            <span className="font-medium">Interviewer:</span> {interview.interviewer}
-                          </p>
-                        )}
-                        {interview.duration && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                            <span className="font-medium">Duration:</span> {interview.duration} minutes
-                          </p>
-                        )}
-                        {interview.notes && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                            {interview.notes}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                    No interviews scheduled yet
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Contacts Tab */}
-            {activeTab === 'contacts' && (
-              <div>
-                {job.contacts.length > 0 ? (
-                  <div className="space-y-4">
-                    {job.contacts.map((contact, index) => (
-                      <div
-                        key={index}
-                        className="border border-gray-200 dark:border-slate-700 rounded-lg p-4"
-                      >
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                          {contact.name}
-                        </h4>
-                        {contact.role && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                            {contact.role}
-                          </p>
-                        )}
-                        {contact.email && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            📧 <a href={`mailto:${contact.email}`} className="hover:underline">{contact.email}</a>
-                          </p>
-                        )}
-                        {contact.phone && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            📞 {contact.phone}
-                          </p>
-                        )}
-                        {contact.linkedIn && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            💼 <a href={contact.linkedIn} target="_blank" rel="noopener noreferrer" className="hover:underline">LinkedIn</a>
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                    No contacts added yet
-                  </p>
                 )}
               </div>
             )}
