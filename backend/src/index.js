@@ -42,14 +42,14 @@ const initializeServer = async () => {
   await connectDB();
 
   // Register CORS plugin (MUST BE BEFORE ROUTES)
-  // Allows frontend to make requests to the API
+  // Allows all origins (for demo/portfolio purposes)
   await fastify.register(cors, {
-    origin: ['http://localhost:3005', 'http://localhost:3000', 'http://127.0.0.1:3005'],
+    origin: true, // Allow all origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
-  console.log('✓ CORS enabled for frontend origins');
+  console.log('✓ CORS enabled for all origins');
 
   // Register rate limiting plugin (MUST BE BEFORE ROUTES)
   // Protects against DoS attacks and accidental abuse
