@@ -25,9 +25,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [value, setValue] = useState(initialValue);
   const [isFocused, setIsFocused] = useState(false);
   const debouncedValue = useDebounce(value, debounceMs);
+  const isFirstRender = React.useRef(true);
 
-  // Trigger search when debounced value changes
+  // Sync with initialValue when it changes (e.g., from Redux on navigation)
   useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  // Trigger search when debounced value changes (but skip first render to avoid duplicate fetch)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     onSearch(debouncedValue);
   }, [debouncedValue, onSearch]);
 

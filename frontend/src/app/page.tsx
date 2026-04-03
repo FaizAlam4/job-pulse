@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useEffect, useCallback, useRef, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/modules/common/hooks/useRedux';
 import { fetchJobsRequest, setPage } from '@/modules/jobs/store/jobsSlice';
@@ -19,7 +19,7 @@ import {
   selectTotalJobCount,
   selectShouldShowJobsSkeleton,
 } from '@/modules/jobs/store/jobsSelectors';
-import { selectActiveFilters, selectActiveFilterCount } from '@/modules/filters/store/filtersSelectors';
+import { selectActiveFilters, selectActiveFilterCount, selectSearchQuery } from '@/modules/filters/store/filtersSelectors';
 import { JobList } from '@/modules/jobs/components/JobList';
 import { FilterBar } from '@/modules/filters/components/FilterBar';
 import { SearchBar } from '@/modules/common/components/SearchBar';
@@ -41,15 +41,15 @@ export default function HomePage() {
   const pageSize = 10;
   const filters = useAppSelector(selectActiveFilters);
   const activeFilterCount = useAppSelector(selectActiveFilterCount);
-  const hasFetched = useRef(false);
+  const searchQuery = useAppSelector(selectSearchQuery);
 
-  // Fetch jobs only on initial mount
+  // Fetch jobs on mount/navigation with current filters
+  // Always fetch to ensure data matches current filter state
   useEffect(() => {
-    if (!hasFetched.current) {
-      hasFetched.current = true;
-      dispatch(fetchJobsRequest({ page: 1, limit: pageSize, sortBy: 'score', order: 'desc' }));
-    }
-  }, [dispatch]);
+    const existingFilters = selectActiveFilters(store.getState());
+    dispatch(fetchJobsRequest({ ...existingFilters, page: 1, limit: pageSize }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - runs once on mount/navigation
 
   // Handle search
   const handleSearch = useCallback(
@@ -182,7 +182,7 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
             >
-              <SearchBar onSearch={handleSearch} />
+              <SearchBar onSearch={handleSearch} initialValue={searchQuery} />
             </motion.div>
           </div>
         </div>

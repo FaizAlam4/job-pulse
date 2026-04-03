@@ -10,6 +10,7 @@ import { JobFilters } from '@/modules/jobs/types';
 export const selectFiltersState = (state: RootState) => state.filters;
 
 // Individual filters
+export const selectSearchQuery = (state: RootState) => state.filters.searchQuery;
 export const selectLocation = (state: RootState) => state.filters.location;
 export const selectCountry = (state: RootState) => state.filters.country;
 export const selectState = (state: RootState) => state.filters.state;
@@ -23,17 +24,19 @@ export const selectIsFilterPanelOpen = (state: RootState) => state.filters.isFil
 
 // Computed selectors
 export const selectHasActiveFilters = (state: RootState): boolean => {
-  const { location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
+  const { searchQuery, location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
   // Check if any filter differs from default
+  const hasSearchQuery = !!searchQuery;
   const hasLocationFilters = !!(location || country || stateName || city);
   const hasOtherFilters = remote || postedWithinHours !== null;
   const hasSortChanged = sortBy !== 'score' || order !== 'desc';
-  return hasLocationFilters || hasOtherFilters || hasSortChanged;
+  return hasSearchQuery || hasLocationFilters || hasOtherFilters || hasSortChanged;
 };
 
 export const selectActiveFilterCount = (state: RootState): number => {
-  const { location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
+  const { searchQuery, location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
   let count = 0;
+  if (searchQuery) count++;
   if (location) count++;
   if (country) count++;
   if (stateName) count++;
@@ -46,13 +49,16 @@ export const selectActiveFilterCount = (state: RootState): number => {
 
 // Convert filter state to API params
 export const selectApiFilters = (state: RootState): JobFilters => {
-  const { location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
+  const { searchQuery, location, country, state: stateName, city, remote, postedWithinHours, sortBy, order } = state.filters;
   
   const filters: JobFilters = {
     sortBy,
     order,
   };
 
+  // Include search query
+  if (searchQuery) filters.search = searchQuery;
+  
   // Always include these fields (even if empty) so they can override cached values
   if (location) filters.location = location;
   if (country) {

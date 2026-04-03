@@ -58,7 +58,20 @@ export const smartGet = async <T>(url: string, config?: any): Promise<AxiosRespo
   // Run cleanup periodically
   runCacheCleanupIfNeeded();
   
-  const cacheKey = url;
+  // Build cache key from URL + query params to differentiate filtered requests
+  let cacheKey = url;
+  if (config?.params) {
+    const searchParams = new URLSearchParams();
+    Object.entries(config.params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        searchParams.append(key, String(value));
+      }
+    });
+    const queryString = searchParams.toString();
+    if (queryString) {
+      cacheKey = `${url}?${queryString}`;
+    }
+  }
   
   // If offline, go straight to cache
   if (!isOnline()) {
@@ -170,7 +183,20 @@ apiClient.interceptors.response.use(
 
     // Cache GET requests for offline support
     if (response.config.method === 'get' && response.status === 200) {
-      const cacheKey = `${response.config.url}`;
+      // Build cache key from URL + query params
+      let cacheKey = `${response.config.url}`;
+      if (response.config.params) {
+        const searchParams = new URLSearchParams();
+        Object.entries(response.config.params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            searchParams.append(key, String(value));
+          }
+        });
+        const queryString = searchParams.toString();
+        if (queryString) {
+          cacheKey = `${response.config.url}?${queryString}`;
+        }
+      }
       try {
         await cacheResponse(cacheKey, response.data);
       } catch (cacheError) {
