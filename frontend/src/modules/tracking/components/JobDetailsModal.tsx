@@ -16,6 +16,41 @@ import {
   PRIORITY_LABELS,
 } from '@/modules/tracking/types';
 
+/**
+ * Check if a string contains HTML tags
+ */
+const containsHtml = (str: string): boolean => {
+  return /<[a-z][\s\S]*>/i.test(str);
+};
+
+/**
+ * Component to render description that may contain HTML or plain text
+ */
+const JobDescription: React.FC<{ description: string | undefined }> = ({ description }) => {
+  if (!description) {
+    return (
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        No description available
+      </p>
+    );
+  }
+
+  if (containsHtml(description)) {
+    return (
+      <div
+        className="text-sm text-gray-600 dark:text-gray-400 prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+        dangerouslySetInnerHTML={{ __html: description }}
+      />
+    );
+  }
+
+  return (
+    <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+      {description}
+    </p>
+  );
+};
+
 interface JobDetailsModalProps {
   job: TrackedJob;
   onClose: () => void;
@@ -181,9 +216,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Description</h4>
                   <div className="max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                      {job.jobSnapshot.description || 'No description available'}
-                    </p>
+                    <JobDescription description={job.jobSnapshot.description} />
                   </div>
                 </div>
 
