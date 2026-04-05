@@ -1,5 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
+// Simple skeleton loader for notifications
+const NotificationSkeleton = () => (
+  <div className="p-3 animate-pulse">
+    <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
+    <div className="h-3 bg-gray-100 dark:bg-slate-800 rounded w-1/2 mb-1" />
+    <div className="h-3 bg-gray-100 dark:bg-slate-800 rounded w-1/3" />
+  </div>
+);
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotificationsRequest } from '../store/notificationSlice';
@@ -106,7 +114,14 @@ export const NotificationBell: React.FC = () => {
               Notifications
             </motion.div>
             <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-700">
-              {items.length === 0 && !loading ? (
+              {loading ? (
+                // Show skeletons while loading
+                <>
+                  <NotificationSkeleton />
+                  <NotificationSkeleton />
+                  <NotificationSkeleton />
+                </>
+              ) : items.length === 0 ? (
                 <motion.div
                   className="p-4 text-center text-gray-500 dark:text-gray-400"
                   initial={{ opacity: 0 }}
@@ -160,7 +175,7 @@ export const NotificationBell: React.FC = () => {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.2 }}
                     >
-                      {loading ? 'Loading...' : 'Load more'}
+                      Load more
                     </motion.button>
                   )}
                 </>

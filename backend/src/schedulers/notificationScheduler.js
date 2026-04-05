@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import Notification from '../models/Notification.js';
+import { config } from '../config/index.js';
 
 /**
  * Delete notifications older than N days
@@ -19,7 +20,9 @@ let notificationCleanupJob = null;
  */
 export function startNotificationCleanupScheduler() {
   if (notificationCleanupJob) return;
-  notificationCleanupJob = cron.schedule('0 3 * * *', async () => {
+  // Use NOTIFICATION_CLEANUP_CRON_EXPRESSION from env if provided, else fallback to default (3:00 AM UTC)
+  const cronExpression = config.notificationCleanupCronExpression || '0 3 * * *';
+  notificationCleanupJob = cron.schedule(cronExpression, async () => {
     console.log(`[${new Date().toISOString()}] 🧹 Notification cleanup triggered`);
     try {
       const result = await deleteOldNotifications(30);
@@ -28,7 +31,7 @@ export function startNotificationCleanupScheduler() {
       console.error(`✗ Notification cleanup error: ${error.message}`);
     }
   });
-  console.log('✓ Notification cleanup scheduler initialized (daily at 3:00 AM UTC)');
+  console.log(`✓ Notification cleanup scheduler initialized (cron: ${cronExpression})`);
 }
 
 /**

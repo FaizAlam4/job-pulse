@@ -20,6 +20,7 @@ export const config = {
   // Scheduler
   fetchIntervalHours: parseInt(process.env.FETCH_INTERVAL_HOURS) || 3,
   ingestCronExpression: process.env.INGEST_CRON_EXPRESSION || '',
+  notificationCleanupCronExpression: process.env.NOTIFICATION_CLEANUP_CRON_EXPRESSION || '',
 
   // Job Ingestion Configuration (SerpAPI Budget Optimization)
   // Adjust these to control API request costs
