@@ -20,13 +20,19 @@ let cleanupJob = null;
  */
 export const startScheduler = () => {
   try {
-    const intervalHours = config.fetchIntervalHours || 3;
 
-    // Calculate cron expression for every N hours
-    // node-cron format: (second) (minute) (hour) (day) (month) (day of week)
-    const cronExpression = `0 0 */${intervalHours} * * *`;
+    // Use INGEST_CRON_EXPRESSION from env if provided, else fallback to interval-based scheduling
+    let cronExpression = config.ingestCronExpression;
+    let scheduleMsg = '';
+    if (!cronExpression) {
+      const intervalHours = config.fetchIntervalHours || 3;
+      cronExpression = `0 0 */${intervalHours} * * *`;
+      scheduleMsg = `every ${intervalHours} hour(s)`;
+    } else {
+      scheduleMsg = `custom cron: ${cronExpression}`;
+    }
 
-    console.log(`\n⏰ Scheduling job ingestion every ${intervalHours} hour(s)`);
+    console.log(`\n⏰ Scheduling job ingestion (${scheduleMsg})`);
     console.log(`📋 Cron expression: ${cronExpression}\n`);
 
     scheduledJob = cron.schedule(cronExpression, async () => {
