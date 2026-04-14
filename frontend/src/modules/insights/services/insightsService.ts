@@ -3,7 +3,7 @@
  * API calls for analytics and insights
  */
 
-import apiClient from '@/services/apiClient';
+import apiClient, { smartGet } from '@/services/apiClient';
 import {
   OverviewStats,
   ApplicationTrends,
@@ -19,7 +19,7 @@ const INSIGHTS_ENDPOINT = '/insights';
  * Get dashboard overview stats
  */
 export const getOverviewStats = async (): Promise<InsightsResponse<OverviewStats>> => {
-  const response = await apiClient.get(`${INSIGHTS_ENDPOINT}/overview`);
+  const response = await smartGet<InsightsResponse<OverviewStats>>(`${INSIGHTS_ENDPOINT}/overview`);
   return response.data;
 };
 
@@ -29,9 +29,8 @@ export const getOverviewStats = async (): Promise<InsightsResponse<OverviewStats
 export const getApplicationTrends = async (
   period: number = 30
 ): Promise<InsightsResponse<ApplicationTrends>> => {
-  const response = await apiClient.get(`${INSIGHTS_ENDPOINT}/trends`, {
-    params: { period },
-  });
+  const url = `${INSIGHTS_ENDPOINT}/trends?period=${period}`;
+  const response = await smartGet<InsightsResponse<ApplicationTrends>>(url);
   return response.data;
 };
 
@@ -39,7 +38,7 @@ export const getApplicationTrends = async (
  * Get sources breakdown
  */
 export const getSourcesBreakdown = async (): Promise<InsightsResponse<SourceData[]>> => {
-  const response = await apiClient.get(`${INSIGHTS_ENDPOINT}/sources`);
+  const response = await smartGet<InsightsResponse<SourceData[]>>(`${INSIGHTS_ENDPOINT}/sources`);
   return response.data;
 };
 
@@ -47,7 +46,7 @@ export const getSourcesBreakdown = async (): Promise<InsightsResponse<SourceData
  * Get skills analysis
  */
 export const getSkillsAnalysis = async (): Promise<InsightsResponse<SkillsAnalysis>> => {
-  const response = await apiClient.get(`${INSIGHTS_ENDPOINT}/skills`);
+  const response = await smartGet<InsightsResponse<SkillsAnalysis>>(`${INSIGHTS_ENDPOINT}/skills`);
   return response.data;
 };
 
@@ -55,7 +54,7 @@ export const getSkillsAnalysis = async (): Promise<InsightsResponse<SkillsAnalys
  * Get goals and progress
  */
 export const getGoalsProgress = async (): Promise<InsightsResponse<GoalsProgress>> => {
-  const response = await apiClient.get(`${INSIGHTS_ENDPOINT}/goals`);
+  const response = await smartGet<InsightsResponse<GoalsProgress>>(`${INSIGHTS_ENDPOINT}/goals`);
   return response.data;
 };
 

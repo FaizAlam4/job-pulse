@@ -22,6 +22,7 @@ import { BarChart } from '@/modules/insights/components/BarChart';
 import { RingChart } from '@/modules/insights/components/RingChart';
 import { LineChart } from '@/modules/insights/components/LineChart';
 import { GoalProgress } from '@/modules/insights/components/GoalProgress';
+import { formatColdStartError } from '@/modules/common/utils/networkError';
 import {
   TRACKING_STATUS_LABELS,
   TRACKING_STATUS_COLORS,
@@ -72,7 +73,7 @@ export default function InsightsPage() {
       if (skillsRes.success) setSkills(skillsRes.data || null);
       if (goalsRes.success) setGoals(goalsRes.data || null);
     } catch (err: any) {
-      setError(err.message || 'Failed to load insights');
+      setError(formatColdStartError(err, 'Failed to load insights'));
     } finally {
       setIsLoading(false);
     }
@@ -95,8 +96,14 @@ export default function InsightsPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-red-800 dark:text-red-200">{error}</p>
+            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <p className="text-red-800 dark:text-red-200 flex-1">{error}</p>
+              <button
+                onClick={fetchAllInsights}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           )}
 

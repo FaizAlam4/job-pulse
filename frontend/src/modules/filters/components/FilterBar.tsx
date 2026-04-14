@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/modules/common/hooks/useRedux';
 import {
@@ -32,6 +32,7 @@ interface FilterBarProps {
 
 export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
   const dispatch = useAppDispatch();
+  const [isExpanded, setIsExpanded] = useState(true);
   
   // Redux state
   const country = useAppSelector(selectCountry);
@@ -118,10 +119,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4"
+      className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 sm:p-4"
     >
       {/* Header with active filter count */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
             <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,74 +144,44 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
               </motion.span>
             )}
           </AnimatePresence>
-          {/* Score Legend */}
-          <div className="group relative ml-2">
-            <div className="p-1 bg-gray-100 dark:bg-slate-700 rounded-full cursor-help">
-              <svg className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="absolute left-0 top-8 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200">
-              <div className="bg-gray-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-xl p-3 w-64">
-                <div className="font-semibold mb-2 flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  Job Score Explained
-                </div>
-                <p className="mb-2">Scores are calculated based on:</p>
-                <ul className="space-y-1 text-xs">
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-green-400 mt-0.5">•</span>
-                    <span><span className="font-medium">Recency</span> - How recently posted</span>
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-blue-400 mt-0.5">•</span>
-                    <span><span className="font-medium">Relevance</span> - Match quality</span>
-                  </li>
-                </ul>
-                <div className="mt-2 pt-2 border-t border-gray-700 dark:border-slate-600 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 bg-green-900/40 text-green-400 rounded text-[10px] font-semibold">70-100%</span>
-                    <span>Excellent match</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 bg-yellow-900/40 text-yellow-400 rounded text-[10px] font-semibold">40-69%</span>
-                    <span>Good match</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 bg-red-900/40 text-red-400 rounded text-[10px] font-semibold">0-39%</span>
-                    <span>Fair match</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-        
-        <AnimatePresence>
-          {hasActiveFilters && (
-            <motion.button
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              onClick={handleReset}
-              suppressHydrationWarning
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Reset All
-            </motion.button>
-          )}
-        </AnimatePresence>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="sm:hidden inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 rounded-lg"
+          >
+            {isExpanded ? 'Hide' : 'Show'}
+            <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <AnimatePresence>
+            {hasActiveFilters && (
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                onClick={handleReset}
+                suppressHydrationWarning
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Reset
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Filter Controls */}
+      <div className={`${isExpanded ? 'block' : 'hidden'} sm:block`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Country Filter */}
         <motion.div variants={itemVariants} className="space-y-1.5">
@@ -308,6 +279,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
             )}
           </motion.button>
         </motion.div>
+      </div>
       </div>
     </motion.div>
   );

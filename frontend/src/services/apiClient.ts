@@ -11,6 +11,9 @@ import { cacheResponse, getCachedResponse, clearExpiredCache, enforceMaxCacheSiz
 // Shorter timeout when we suspect slow/unreliable network
 const ONLINE_TIMEOUT = 10000; // 10 seconds when online
 const OFFLINE_FALLBACK_TIMEOUT = 4000; // 4 seconds before falling back to cache
+const COLD_START_TIMEOUT = 25000; // Render cold starts can exceed the default timeout
+const RETRYABLE_NETWORK_ERROR_CODES = new Set(['ECONNABORTED', 'ERR_NETWORK', 'ETIMEDOUT']);
+const MAX_COLD_START_RETRIES = 1;
 const CACHE_CLEANUP_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
 // Check if browser is online
@@ -20,6 +23,29 @@ const isOnline = (): boolean => {
 
 // Track last cleanup time
 let lastCleanupTime = 0;
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const isRetryableNetworkError = (error: unknown): error is AxiosError => {
+  if (!axios.isAxiosError(error)) {
+    return false;
+  }
+
+  if (error.response) {
+    return false;
+  }
+
+  return !!error.code && RETRYABLE_NETWORK_ERROR_CODES.has(error.code);
+};
+
+const getRequestTimeout = (hasCachedData: boolean, config?: any): number => {
+  const configuredTimeout = config?.timeout;
+  if (typeof configuredTimeout === 'number' && configuredTimeout > 0) {
+    return configuredTimeout;
+  }
+
+  return hasCachedData ? ONLINE_TIMEOUT : COLD_START_TIMEOUT;
+};
 
 /**
  * Run cache cleanup if needed (expired entries + max size limit)
@@ -72,11 +98,13 @@ export const smartGet = async <T>(url: string, config?: any): Promise<AxiosRespo
       cacheKey = `${url}?${queryString}`;
     }
   }
+
+  const cachedData = await getCachedResponse(cacheKey);
+  const hasCachedData = !!cachedData;
   
   // If offline, go straight to cache
   if (!isOnline()) {
     console.log('📴 [API] Offline - using cache');
-    const cachedData = await getCachedResponse(cacheKey);
     if (cachedData) {
       console.log(`📖 [Cache] Returning cached data: ${cacheKey}`);
       return {
@@ -96,11 +124,10 @@ export const smartGet = async <T>(url: string, config?: any): Promise<AxiosRespo
     const cachePromise = new Promise<AxiosResponse<T> | null>(async (resolve) => {
       // Wait a bit before falling back to cache
       await new Promise(r => setTimeout(r, OFFLINE_FALLBACK_TIMEOUT));
-      const cached = await getCachedResponse(cacheKey);
-      if (cached) {
+      if (cachedData) {
         console.log(`⏱️ [Cache] Network slow, using cache: ${cacheKey}`);
         resolve({
-          data: cached as T,
+          data: cachedData as T,
           status: 200,
           statusText: 'OK (from cache - slow network)',
           headers: {},
@@ -112,7 +139,32 @@ export const smartGet = async <T>(url: string, config?: any): Promise<AxiosRespo
     });
 
     // Race: network vs cache fallback
-    const networkPromise = apiClient.get<T>(url, config);
+    const requestConfig = {
+      ...config,
+      timeout: getRequestTimeout(hasCachedData, config),
+    };
+
+    const runNetworkRequest = async () => {
+      let attempt = 0;
+
+      while (true) {
+        try {
+          if (attempt > 0) {
+            console.log(`🔁 [API] Retrying GET ${url} after cold start/network delay`);
+          }
+          return await apiClient.get<T>(url, requestConfig);
+        } catch (error) {
+          if (!isRetryableNetworkError(error) || attempt >= MAX_COLD_START_RETRIES) {
+            throw error;
+          }
+
+          attempt += 1;
+          await sleep(1500);
+        }
+      }
+    };
+
+    const networkPromise = runNetworkRequest();
     
     const result = await Promise.race([
       networkPromise.then(res => ({ type: 'network' as const, response: res })),
@@ -137,7 +189,6 @@ export const smartGet = async <T>(url: string, config?: any): Promise<AxiosRespo
     return networkResponse;
   } catch (error) {
     // Network completely failed, try cache as last resort
-    const cachedData = await getCachedResponse(cacheKey);
     if (cachedData) {
       console.log(`📖 [Cache] Network failed, using cache: ${cacheKey}`);
       return {

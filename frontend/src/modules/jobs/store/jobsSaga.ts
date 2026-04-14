@@ -24,6 +24,7 @@ import {
   searchJobsFailure,
 } from './jobsSlice';
 import { JobFilters, JobsResponse, JobDetailResponse, TopJobsResponse, JobStatsResponse, SearchParams } from '../types';
+import { formatColdStartError } from '@/modules/common/utils/networkError';
 
 /**
  * Fetch jobs with filters
@@ -42,7 +43,7 @@ function* fetchJobsSaga(action: PayloadAction<JobFilters | undefined>) {
       pagination: response.pagination,
     }));
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch jobs';
+    const message = formatColdStartError(error, 'Failed to fetch jobs');
     yield put(fetchJobsFailure(message));
   }
 }

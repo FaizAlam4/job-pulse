@@ -28,6 +28,7 @@ import {
 } from '@/modules/tracking/types';
 import { KanbanColumn } from '@/modules/tracking/components/KanbanColumn';
 import { JobDetailsModal } from '@/modules/tracking/components/JobDetailsModal';
+import { formatColdStartError } from '@/modules/common/utils/networkError';
 
 const KANBAN_COLUMNS: TrackingStatus[] = [
   'saved',
@@ -55,6 +56,14 @@ export default function TrackerPage() {
   const [showJobDetails, setShowJobDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20); // Fixed at 20 items per page for list view
+
+  const retryTrackingData = () => {
+    const params = viewMode === 'list'
+      ? { page: currentPage, limit: itemsPerPage }
+      : undefined;
+    dispatch(fetchTrackedJobs(params) as any);
+    dispatch(fetchAnalytics() as any);
+  };
 
   // Derive selectedJob from Redux state so it stays in sync with updates
   const selectedJob = selectedJobId 
@@ -206,8 +215,16 @@ export default function TrackerPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-red-800 dark:text-red-200">{error}</p>
+            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <p className="text-red-800 dark:text-red-200 flex-1">
+                {formatColdStartError(new Error(error), error)}
+              </p>
+              <button
+                onClick={retryTrackingData}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           )}
 

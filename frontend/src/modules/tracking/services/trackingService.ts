@@ -3,7 +3,7 @@
  * API calls for job application tracking
  */
 
-import apiClient from '@/services/apiClient';
+import apiClient, { smartGet } from '@/services/apiClient';
 import {
   TrackedJob,
   TrackJobRequest,
@@ -34,7 +34,13 @@ export const getTrackedJobs = async (params?: {
   page?: number;
   limit?: number;
 }): Promise<TrackingResponse<TrackedJob[]>> => {
-  const response = await apiClient.get(TRACKING_ENDPOINT, { params });
+  const queryString = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params || {}).filter(([, v]) => v !== undefined)
+    ) as Record<string, string>
+  ).toString();
+  const url = queryString ? `${TRACKING_ENDPOINT}?${queryString}` : TRACKING_ENDPOINT;
+  const response = await smartGet<TrackingResponse<TrackedJob[]>>(url);
   return response.data;
 };
 
@@ -42,7 +48,7 @@ export const getTrackedJobs = async (params?: {
  * Get single tracked job
  */
 export const getTrackedJob = async (trackingId: string): Promise<TrackingResponse<TrackedJob>> => {
-  const response = await apiClient.get(`${TRACKING_ENDPOINT}/${trackingId}`);
+  const response = await smartGet<TrackingResponse<TrackedJob>>(`${TRACKING_ENDPOINT}/${trackingId}`);
   return response.data;
 };
 
@@ -91,7 +97,7 @@ export const deleteTrackedJob = async (trackingId: string): Promise<TrackingResp
  * Get tracking analytics
  */
 export const getTrackingAnalytics = async (): Promise<TrackingResponse<TrackingAnalytics>> => {
-  const response = await apiClient.get(`${TRACKING_ENDPOINT}/analytics`);
+  const response = await smartGet<TrackingResponse<TrackingAnalytics>>(`${TRACKING_ENDPOINT}/analytics`);
   return response.data;
 };
 
@@ -99,7 +105,7 @@ export const getTrackingAnalytics = async (): Promise<TrackingResponse<TrackingA
  * Check if a job is being tracked
  */
 export const checkJobTracking = async (jobId: string): Promise<TrackingResponse<{ isTracked: boolean; tracking: TrackedJob | null }>> => {
-  const response = await apiClient.get(`${TRACKING_ENDPOINT}/check/${jobId}`);
+  const response = await smartGet<TrackingResponse<{ isTracked: boolean; tracking: TrackedJob | null }>>(`${TRACKING_ENDPOINT}/check/${jobId}`);
   return response.data;
 };
 

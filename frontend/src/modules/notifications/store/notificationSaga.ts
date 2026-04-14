@@ -7,15 +7,13 @@ import {
 import { Notification } from '../types';
 
 
-function fetchNotificationsApi(page = 1, limit = 20): Promise<any> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/notifications?page=${page}&limit=${limit}`;
-  return fetch(url)
-    .then((res) => {
-      if (!res.ok) throw new Error('Failed to fetch notifications');
-      return res.json();
-    });
-}
 
+import { smartGet } from '@/services/apiClient';
+
+function fetchNotificationsApi(page = 1, limit = 20): Promise<any> {
+  const url = `/notifications?page=${page}&limit=${limit}`;
+  return smartGet(url).then(res => res.data);
+}
 function* fetchNotificationsSaga(action: any): any {
   try {
     const page = action.payload?.page || 1;

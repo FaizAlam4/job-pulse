@@ -65,6 +65,13 @@ select option {
 }
 
 /* Job description HTML content - override inline styles in dark mode */
+.job-description,
+.job-description * {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
 .dark .job-description,
 .dark .job-description * {
   color: #d1d5db !important; /* gray-300 */

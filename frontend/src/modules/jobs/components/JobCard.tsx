@@ -59,13 +59,13 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
       initial="hidden"
       animate="visible"
       whileHover={{ y: -4, boxShadow: '0 12px 24px rgba(0, 0, 0, 0.15)' }}
-      className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 hover:shadow-md cursor-pointer border border-gray-100 dark:border-slate-700 transition-shadow">
-          <div className="flex justify-between items-start">
+      className="w-full overflow-hidden bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 hover:shadow-md cursor-pointer border border-gray-100 dark:border-slate-700 transition-shadow">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900 dark:text-white truncate">{job.title}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{job.company}</p>
+              <h3 className="font-medium text-gray-900 dark:text-white break-words">{job.title}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 break-words">{job.company}</p>
             </div>
-            <span className={`px-2 py-1 rounded text-sm font-medium ${scoreColor}`}>
+            <span className={`shrink-0 px-2 py-1 rounded text-sm font-medium ${scoreColor}`}>
               {scorePercent}%
             </span>
           </div>
@@ -73,28 +73,28 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
   );
 
   return (
-    <Link href={`/jobs/${job._id}`}>
+    <Link href={`/jobs/${job._id}`} className="block min-w-0">
       <motion.div
         variants={cardVariants}
         initial="hidden"
         animate="visible"
         whileHover={{ y: -6, boxShadow: '0 16px 32px rgba(0, 0, 0, 0.15)' }}
-        className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 hover:shadow-lg cursor-pointer border border-gray-100 dark:border-slate-700 transition-shadow">
+        className="w-full overflow-hidden bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg cursor-pointer border border-gray-100 dark:border-slate-700 transition-shadow">
         {/* Header */}
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1 min-w-0 pr-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
+          <div className="min-w-0 flex-1 sm:pr-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors break-words">
               {job.title}
             </h3>
-            <p className="text-gray-700 dark:text-gray-300 font-medium">{job.company}</p>
+            <p className="text-gray-700 dark:text-gray-300 font-medium break-words">{job.company}</p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-row flex-wrap items-center justify-between gap-2 sm:flex-col sm:items-end sm:justify-start">
             <div className="group relative">
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${scoreColor} cursor-help`}>
+              <span className={`inline-flex shrink-0 px-3 py-1 rounded-full text-sm font-semibold ${scoreColor} cursor-help`}>
                 {scorePercent}%
               </span>
-              <div className="absolute right-0 top-8 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200">
-                <div className="bg-gray-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-xl p-2.5 w-48 whitespace-nowrap">
+              <div className="absolute right-0 top-8 z-50 hidden sm:invisible sm:block sm:group-hover:visible opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+                <div className="bg-gray-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-xl p-2.5 w-48 whitespace-normal">
                   <div className="font-semibold mb-1">Match Score: {scorePercent}%</div>
                   <div className="text-[10px] text-gray-300">Based on recency & relevance</div>
                 </div>
@@ -102,7 +102,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
             </div>
             {trackedJob && (
               <span
-                className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                className={`max-w-full px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 break-words ${
                   TRACKING_STATUS_COLORS[trackedJob.status as TrackingStatus].bg
                 } ${TRACKING_STATUS_COLORS[trackedJob.status as TrackingStatus].text}`}
                 title="This job is being tracked"
@@ -117,28 +117,28 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
         </div>
 
         {/* Location & Time */}
-        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
-          <span className="flex items-center gap-1">
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
+          <span className="flex min-w-0 items-center gap-1 break-words">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            {job.location || 'Location not specified'}
+            <span className="min-w-0 break-words">{job.location || 'Location not specified'}</span>
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex shrink-0 items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             {formatDistanceToNow(job.postedAt)}
           </span>
-          <span className="text-gray-400 dark:text-gray-500">•</span>
-          <span className="capitalize">{job.source}</span>
+          <span className="hidden text-gray-400 dark:text-gray-500 sm:inline">•</span>
+          <span className="capitalize break-words">{job.source}</span>
         </div>
 
         {/* Description Preview */}
         {job.description && (
           <p
-            className="job-description text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2"
+            className="job-description overflow-hidden text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 break-words"
             dangerouslySetInnerHTML={{ __html: job.description }}
           />
         )}
@@ -149,7 +149,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
             {job.skills.slice(0, 5).map((skill, index) => (
               <span
                 key={index}
-                className="px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-md"
+                className="max-w-full break-words px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-md"
               >
                 {skill}
               </span>
@@ -170,12 +170,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
             </span>
           )}
           {job.salary && (
-            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-md">
+            <span className="max-w-full break-words px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-md">
               💰 {job.salary}
             </span>
           )}
           {job.scheduleType && (
-            <span className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 text-xs rounded-md">
+            <span className="max-w-full break-words px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 text-xs rounded-md">
               {job.scheduleType}
             </span>
           )}

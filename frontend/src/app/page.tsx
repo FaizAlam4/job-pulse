@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/modules/common/hooks/useRedux'
 import { fetchJobsRequest, setPage } from '@/modules/jobs/store/jobsSlice';
 import {
   selectAllJobs,
+  selectHasFetchedJobs,
   selectJobsLoading,
   selectJobsError,
   selectCurrentPage,
@@ -23,7 +24,6 @@ import { selectActiveFilters, selectActiveFilterCount, selectSearchQuery } from 
 import { JobList } from '@/modules/jobs/components/JobList';
 import { FilterBar } from '@/modules/filters/components/FilterBar';
 import { SearchBar } from '@/modules/common/components/SearchBar';
-import { StatCardSkeleton } from '@/modules/common/components/Loader';
 import { setSearchQuery } from '@/modules/filters/store/filtersSlice';
 import { useStore } from 'react-redux';
 import { RootState } from '@/store';
@@ -34,6 +34,7 @@ export default function HomePage() {
   const jobs = useAppSelector(selectAllJobs);
   const loading = useAppSelector(selectJobsLoading);
   const showSkeleton = useAppSelector(selectShouldShowJobsSkeleton);
+  const hasFetchedJobs = useAppSelector(selectHasFetchedJobs);
   const error = useAppSelector(selectJobsError);
   const currentPage = useAppSelector(selectCurrentPage);
   const totalPages = useAppSelector(selectTotalPages);
@@ -68,6 +69,11 @@ export default function HomePage() {
     dispatch(fetchJobsRequest({ ...freshFilters, page: 1, limit: pageSize }));
   }, [dispatch, store, pageSize]);
 
+  const handleRetryJobs = useCallback(() => {
+    const freshFilters = selectActiveFilters(store.getState());
+    dispatch(fetchJobsRequest({ ...freshFilters, page: currentPage, limit: pageSize }));
+  }, [currentPage, dispatch, store, pageSize]);
+
 
   // Handle page change
   const handlePageChange = useCallback((page: number) => {
@@ -90,18 +96,6 @@ export default function HomePage() {
       y: 0,
       transition: { duration: 0.6 },
     },
-  };
-
-  const statsVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: (i: number) => ({
-      opacity: 1,
-      scale: 1,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.4,
-      },
-    }),
   };
 
   return (
@@ -143,10 +137,10 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
           <div className="text-center">
             <motion.h1
-              className="text-3xl md:text-4xl font-bold mb-2"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
@@ -167,7 +161,7 @@ export default function HomePage() {
               </motion.span>
             </motion.h1>
             <motion.p
-              className="text-blue-100 dark:text-slate-300 text-sm md:text-base max-w-2xl mx-auto mb-6"
+              className="text-blue-100 dark:text-slate-300 text-sm md:text-base max-w-2xl mx-auto mb-4 sm:mb-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
@@ -189,86 +183,29 @@ export default function HomePage() {
       </motion.div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Integrated Stats + Filters Card with Animation */}
+        {/* Compact Filter Section */}
         <motion.div
           className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 mb-6 -mt-8 overflow-hidden"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border-b border-gray-200 dark:border-slate-700">
-            {showSkeleton ? (
-              <>
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-              </>
-            ) : (
-              <>
-                <motion.div
-                  className="text-center py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors cursor-pointer group"
-                  custom={0}
-                  initial="hidden"
-                  animate="visible"
-                  variants={statsVariants}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.p
-                    className="text-2xl font-bold text-blue-600 dark:text-blue-400"
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
-                  >
-                    {totalJobs}
-                  </motion.p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Total Jobs</p>
-                </motion.div>
-                <motion.div
-                  className="text-center py-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors cursor-pointer group"
-                  custom={1}
-                  initial="hidden"
-                  animate="visible"
-                  variants={statsVariants}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{jobs.length}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Showing</p>
-                </motion.div>
-                <motion.div
-                  className="text-center py-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors cursor-pointer group"
-                  custom={2}
-                  initial="hidden"
-                  animate="visible"
-                  variants={statsVariants}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{currentPage}/{totalPages}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Page</p>
-                </motion.div>
-                <motion.div
-                  className="text-center py-2 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors cursor-pointer group"
-                  custom={3}
-                  initial="hidden"
-                  animate="visible"
-                  variants={statsVariants}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.p
-                    className="text-2xl font-bold text-amber-600 dark:text-amber-400"
-                    animate={activeFilterCount > 0 ? { scale: [1, 1.2, 1] } : {}}
-                    transition={activeFilterCount > 0 ? { duration: 0.5 } : {}}
-                  >
-                    {activeFilterCount}
-                  </motion.p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Active Filters</p>
-                </motion.div>
-              </>
-            )}
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 sm:p-4 border-b border-gray-200 dark:border-slate-700">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 text-xs sm:text-sm font-medium">
+                <span className="font-semibold">{totalJobs}</span>
+                jobs
+              </span>
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-3 py-1 text-xs sm:text-sm font-medium">
+                  <span className="font-semibold">{activeFilterCount}</span>
+                  active filters
+                </span>
+              )}
+            </div>
+            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+              Page {currentPage} of {totalPages}
+            </span>
           </div>
           
           {/* Filters Row */}
@@ -282,30 +219,49 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
+        {showSkeleton && !hasFetchedJobs && (
+          <motion.div
+            className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-100"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <p className="font-medium">Waking up the backend</p>
+            <p className="text-sm opacity-90">The first load can take a bit longer after inactivity. If needed, use the retry button instead of refreshing the whole app.</p>
+          </motion.div>
+        )}
+
         {/* Error State with Animation */}
         {error && (
           <motion.div
-            className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3"
+            className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex flex-col sm:flex-row sm:items-center gap-3"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
           >
-            <motion.div
-              className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center flex-shrink-0"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <motion.div
+                className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center flex-shrink-0"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+              >
+                <svg className="w-5 h-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </motion.div>
+              <p className="text-red-700 dark:text-red-300">{error}</p>
+            </div>
+            <button
+              onClick={handleRetryJobs}
+              className="self-start sm:self-auto px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
             >
-              <svg className="w-5 h-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </motion.div>
-            <p className="text-red-700 dark:text-red-300">{error}</p>
+              Try Again
+            </button>
           </motion.div>
         )}
 
         {/* Results Header with Animation */}
         <motion.div
-          className="flex justify-between items-center mb-6"
+          className="flex justify-between items-center mb-4"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.4, duration: 0.5 }}

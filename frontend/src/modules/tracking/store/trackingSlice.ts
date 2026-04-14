@@ -23,6 +23,7 @@ import {
   syncPendingActions,
   updateLastSync,
 } from '../services/trackingOfflineService';
+import { formatColdStartError } from '@/modules/common/utils/networkError';
 
 interface TrackingState {
   trackedJobs: TrackedJob[];
@@ -88,7 +89,7 @@ export const fetchTrackedJobs = createAsyncThunk(
           pagination: null,
         };
       }
-      return rejectWithValue(error.message);
+        return rejectWithValue(formatColdStartError(error, 'Failed to fetch tracked jobs'));
     }
   }
 );
@@ -206,11 +207,15 @@ export const removeTrackedJob = createAsyncThunk(
   }
 );
 
-export const fetchAnalytics = createAsyncThunk(
+export const fetchAnalytics = createAsyncThunk<TrackingAnalytics | null, void, { rejectValue: string }>(
   'tracking/fetchAnalytics',
-  async () => {
-    const response = await trackingService.getTrackingAnalytics();
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await trackingService.getTrackingAnalytics();
+      return response.data || null;
+    } catch (error) {
+      return rejectWithValue(formatColdStartError(error, 'Failed to fetch analytics'));
+    }
   }
 );
 
@@ -302,7 +307,7 @@ const trackingSlice = createSlice({
       })
       .addCase(fetchTrackedJobs.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Failed to fetch tracked jobs';
+        state.error = (action.payload as string) || action.error.message || 'Failed to fetch tracked jobs';
       });
 
     // Track new job
@@ -424,7 +429,7 @@ const trackingSlice = createSlice({
         state.analytics = action.payload || null;
       })
       .addCase(fetchAnalytics.rejected, (state, action) => {
-        state.error = action.error.message || 'Failed to fetch analytics';
+        state.error = (action.payload as string) || action.error.message || 'Failed to fetch analytics';
       });
   },
 });
