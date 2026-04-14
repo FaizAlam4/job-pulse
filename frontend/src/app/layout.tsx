@@ -41,7 +41,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#ffffff",
+  themeColor: "#1E3A8A",
 };
 
 export default function RootLayout({
@@ -58,7 +58,7 @@ export default function RootLayout({
       <head>
         {/* Static manifest link - must be in initial HTML for PWA detection */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#1E3A8A" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
