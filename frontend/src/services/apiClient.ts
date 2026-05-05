@@ -10,7 +10,7 @@ import { cacheResponse, getCachedResponse, clearExpiredCache, enforceMaxCacheSiz
 
 // Shorter timeout when we suspect slow/unreliable network
 const ONLINE_TIMEOUT = 10000; // 10 seconds when online
-const OFFLINE_FALLBACK_TIMEOUT = 4000; // 4 seconds before falling back to cache
+const OFFLINE_FALLBACK_TIMEOUT = 8000; // 8 seconds before falling back to cache
 const COLD_START_TIMEOUT = 25000; // Render cold starts can exceed the default timeout
 const RETRYABLE_NETWORK_ERROR_CODES = new Set(['ECONNABORTED', 'ERR_NETWORK', 'ETIMEDOUT']);
 const MAX_COLD_START_RETRIES = 1;
