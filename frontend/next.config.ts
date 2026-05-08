@@ -68,6 +68,7 @@ const withPWAConfig = withPWA({
 });
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   devIndicators: false,
 };
 

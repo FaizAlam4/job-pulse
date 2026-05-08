@@ -1,0 +1,56 @@
+services:
+  # ── MongoDB ─────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: mongosh --eval "db.adminCommand('ping')" --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend API ─────────────────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/job-pulse
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production-min-32-chars}
+      - SERPAPI_KEY=${SERPAPI_KEY:-}
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-}
+      - API_BASE_URL=${API_BASE_URL:-}
+    healthcheck:
+      test: wget -qO- http://127.0.0.1:3000/health || exit 1
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+
+  # ── Frontend ────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    restart: unless-stopped
+    ports:
+      - "3005:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  mongo_data:
