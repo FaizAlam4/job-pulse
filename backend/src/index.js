@@ -79,7 +79,7 @@ const initializeServer = async () => {
         license: { name: 'MIT' },
       },
       servers: [
-        ...(config.nodeEnv === 'production' && process.env.API_BASE_URL
+        ...(process.env.API_BASE_URL
           ? [{ url: process.env.API_BASE_URL, description: 'Production' }]
           : []),
         { url: `http://localhost:${config.port}`, description: 'Local development' },
