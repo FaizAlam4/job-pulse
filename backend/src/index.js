@@ -1,11 +1,14 @@
 import Fastify from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import cors from '@fastify/cors';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import { connectDB, disconnectDB } from './config/database.js';
 import { config } from './config/index.js';
 import { registerJobRoutes, registerUtilityRoutes } from './routes/index.js';
 import { startScheduler, stopScheduler } from './schedulers/jobScheduler.js';
 import { startNotificationCleanupScheduler, stopNotificationCleanupScheduler } from './schedulers/notificationScheduler.js';
+import { allSchemas } from './schemas/index.js';
 
 // Global error handlers to catch crashes
 process.on('uncaughtException', (err) => {
@@ -36,6 +39,12 @@ const initializeServer = async () => {
               },
             },
     },
+    ajv: {
+      customOptions: {
+        // Allow "example" keyword in JSON schemas (used by Swagger/OpenAPI)
+        keywords: ['example'],
+      },
+    },
   });
 
   // Connect to MongoDB
@@ -50,6 +59,63 @@ const initializeServer = async () => {
     credentials: true,
   });
   console.log('✓ CORS enabled for all origins');
+
+  // Register shared JSON schemas (used for validation + OpenAPI generation)
+  for (const schema of allSchemas) {
+    fastify.addSchema(schema);
+  }
+
+  // Register Swagger (OpenAPI 3.0 spec generation)
+  await fastify.register(swagger, {
+    openapi: {
+      info: {
+        title: 'Job Pulse API',
+        description: 'Job aggregation, tracking, and analytics platform API',
+        version: '1.0.0',
+        contact: {
+          name: 'Faiz Alam',
+          url: 'https://github.com/FaizAlam4/job-pulse',
+        },
+        license: { name: 'MIT' },
+      },
+      servers: [
+        ...(config.nodeEnv === 'production' && process.env.API_BASE_URL
+          ? [{ url: process.env.API_BASE_URL, description: 'Production' }]
+          : []),
+        { url: `http://localhost:${config.port}`, description: 'Local development' },
+      ],
+      tags: [
+        { name: 'Jobs', description: 'Job listings — browse, search, and filter aggregated jobs' },
+        { name: 'Auth', description: 'Authentication — register, login, and manage profiles' },
+        { name: 'Tracking', description: 'Application tracking — Kanban pipeline for job applications' },
+        { name: 'Insights', description: 'Personal analytics — trends, goals, skills, and sources' },
+        { name: 'Notifications', description: 'System notifications' },
+        { name: 'Admin', description: 'Admin operations — ingestion, re-scoring, cleanup' },
+        { name: 'System', description: 'Health checks and API info' },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: 'Enter JWT token obtained from /api/auth/login',
+          },
+        },
+      },
+    },
+  });
+
+  // Register Swagger UI (serves interactive docs at /docs)
+  await fastify.register(swaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: true,
+      tryItOutEnabled: true,
+    },
+  });
+  console.log('✓ Swagger UI available at /docs');
 
   // Register rate limiting plugin (MUST BE BEFORE ROUTES)
   // Protects against DoS attacks and accidental abuse
