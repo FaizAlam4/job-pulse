@@ -1,7 +1,14 @@
+# ─── Usage ────────────────────────────────────────────────────────────────────
+# Default (Atlas):  docker compose up -d
+# Fully local:      docker compose --profile local-db -f docker-compose.yml -f docker-compose.local.yml up -d
+# ──────────────────────────────────────────────────────────────────────────────
+
 services:
-  # ── MongoDB ─────────────────────────────────────────────────────────────────
+  # ── MongoDB (optional — only starts with: docker compose --profile local-db up)
+  # Use this if you don't have MongoDB Atlas or want a fully local setup
   mongo:
     image: mongo:7
+    profiles: ["local-db"]
     restart: unless-stopped
     ports:
       - "27017:27017"
@@ -19,13 +26,10 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    depends_on:
-      mongo:
-        condition: service_healthy
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://mongo:27017/job-pulse
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/job-pulse}
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production-min-32-chars}
       - SERPAPI_KEY=${SERPAPI_KEY:-}
       - ADMIN_API_KEY=${ADMIN_API_KEY:-}

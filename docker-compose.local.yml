@@ -1,0 +1,11 @@
+# docker-compose.local.yml
+# Use with: docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+# This forces local MongoDB regardless of what MONGODB_URI is set in .env
+
+services:
+  backend:
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/job-pulse
