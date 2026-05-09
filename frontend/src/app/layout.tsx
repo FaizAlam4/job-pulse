@@ -57,6 +57,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Prevent dark mode FOUC - runs before paint */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`,
+          }}
+        />
         {/* Static manifest link - must be in initial HTML for PWA detection */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1E3A8A" />

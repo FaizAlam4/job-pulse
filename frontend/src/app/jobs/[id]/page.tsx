@@ -217,7 +217,8 @@ export default function JobDetailPage() {
             {/* Score Badge */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 text-center shadow-xl min-w-[160px]">
               <p className="text-5xl font-bold text-gray-900 dark:text-white">{scorePercent}%</p>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">Match Score</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">Job Score</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">General · Same for all users</p>
               <div className="mt-3 flex justify-center gap-1">
                 {[1,2,3,4,5].map((star) => (
                   <svg 

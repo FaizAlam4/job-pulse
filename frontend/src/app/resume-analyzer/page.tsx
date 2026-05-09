@@ -65,10 +65,25 @@ const MODEL_TIER_COLORS = {
 };
 
 // Priority badge colors
-const PRIORITY_COLORS = {
-  high: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  low: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+const PRIORITY_COLORS: Record<string, { badge: string; border: string; icon: string; bg: string }> = {
+  high: {
+    badge: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 ring-1 ring-red-200 dark:ring-red-500/40',
+    border: 'border-l-red-500',
+    icon: '🔴',
+    bg: 'bg-red-50/60 dark:bg-red-500/10',
+  },
+  medium: {
+    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-500/40',
+    border: 'border-l-amber-400',
+    icon: '🟡',
+    bg: 'bg-amber-50/60 dark:bg-amber-500/10',
+  },
+  low: {
+    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 ring-1 ring-emerald-200 dark:ring-emerald-500/40',
+    border: 'border-l-emerald-400',
+    icon: '🟢',
+    bg: 'bg-emerald-50/60 dark:bg-emerald-500/10',
+  },
 };
 
 // Experience level options
@@ -570,177 +585,223 @@ export default function ResumeAnalyzerPage() {
               </div>
             </motion.div>
 
-            {/* Two-column layout for Skills + Fixes */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Extracted Skills */}
-              {displayResult.extractedSkills.length > 0 && (
-                <motion.div
-                  className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
-                  variants={itemVariants}
-                >
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Detected Skills
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {displayResult.extractedSkills.map((skill, i) => (
-                      <motion.span
-                        key={i}
-                        className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-800"
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.03, duration: 0.3, type: 'spring', stiffness: 200 }}
-                      >
-                        {skill}
-                      </motion.span>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Analysis Meta Card */}
-              <motion.div
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
-                variants={itemVariants}
-              >
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Analysis Details
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-700">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Provider</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">{displayResult.provider}</span>
-                  </div>
-                  {displayResult.modelUsed && (
-                    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-700">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Model</span>
-                      <span className={`text-sm font-medium ${displayResult.modelTier ? MODEL_TIER_COLORS[displayResult.modelTier] : 'text-gray-900 dark:text-white'}`}>
-                        {displayResult.modelUsed}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-700">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Analysis Time</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{(displayResult.analysisTime / 1000).toFixed(1)}s</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Tokens Used</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{displayResult.tokensUsed}</span>
-                  </div>
-                </div>
-                {displayResult.modelTier === 'fallback' && (
-                  <div className="mt-3 p-2.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <p className="text-xs text-yellow-700 dark:text-yellow-400">
-                      ⚠️ Fallback model used due to high demand — results may be less detailed
-                    </p>
-                  </div>
-                )}
-              </motion.div>
-            </div>
-
-            {/* Fixes */}
-            {displayResult.fixes.length > 0 && (
+            {/* Extracted Skills */}
+            {displayResult.extractedSkills.length > 0 && (
               <motion.div
                 className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700 mb-6"
                 variants={itemVariants}
               >
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
-                  Suggested Improvements
-                  <span className="ml-auto text-xs font-normal px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                    {displayResult.fixes.length} found
+                  Detected Skills
+                  <span className="ml-auto text-xs font-normal px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                    {displayResult.extractedSkills.length} skills
                   </span>
                 </h2>
-                <div className="space-y-3">
-                  {displayResult.fixes.map((fix, i) => (
-                    <motion.div
+                <div className="flex flex-wrap gap-2">
+                  {displayResult.extractedSkills.map((skill, i) => (
+                    <motion.span
                       key={i}
-                      className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-100 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 transition-colors"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.08, duration: 0.3 }}
+                      className="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-800"
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.03, duration: 0.3, type: 'spring', stiffness: 200 }}
                     >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${PRIORITY_COLORS[fix.priority]}`}>
-                          {fix.priority}
-                        </span>
-                        <span className="font-medium text-gray-900 dark:text-white text-sm">
-                          {fix.section}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {fix.issue}
-                      </p>
-                      <div className="flex items-start gap-2 p-2.5 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
-                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="text-sm text-green-700 dark:text-green-400">
-                          {fix.suggestion}
-                        </p>
-                      </div>
-                    </motion.div>
+                      {skill}
+                    </motion.span>
                   ))}
                 </div>
               </motion.div>
             )}
 
+            {/* Fixes */}
+            <motion.div
+              className="rounded-2xl shadow-xl overflow-hidden mb-6 border border-amber-200/50 dark:border-amber-900/30"
+              variants={itemVariants}
+            >
+              {/* Gradient Header */}
+              <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    Suggested Improvements
+                  </h2>
+                  <span className="text-sm font-semibold text-white/90 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                    {displayResult.fixes.length} found
+                  </span>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="bg-gray-50 dark:bg-slate-900 p-5">
+                {displayResult.fixes.length > 0 ? (
+                  <div className="space-y-4">
+                    {displayResult.fixes.map((fix, i) => {
+                      const colors = PRIORITY_COLORS[fix.priority] || PRIORITY_COLORS.medium;
+                      return (
+                        <motion.div
+                          key={i}
+                          className={`relative rounded-xl border border-gray-200 dark:border-slate-600 border-l-4 ${colors.border} overflow-hidden shadow-sm hover:shadow-lg dark:shadow-black/20 transition-all duration-300 bg-white dark:bg-slate-800`}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1, duration: 0.4, ease: 'easeOut' }}
+                          whileHover={{ y: -2 }}
+                        >
+                          {/* Card Header */}
+                          <div className="px-5 pt-4 pb-3 border-b border-gray-100 dark:border-slate-700">
+                            <div className="flex items-center gap-3">
+                              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-slate-600 text-xs font-bold text-gray-700 dark:text-gray-100">
+                                {i + 1}
+                              </span>
+                              <span className={`px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md ${colors.badge}`}>
+                                {fix.priority}
+                              </span>
+                              <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                                {fix.section}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Issue */}
+                          <div className="px-5 py-3">
+                            <div className="flex items-start gap-2.5">
+                              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mt-0.5">
+                                <svg className="w-3 h-3 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 dark:text-red-400">Issue</span>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mt-0.5">
+                                  {fix.issue}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Suggestion */}
+                          <div className="mx-5 mb-4 p-3.5 bg-green-50 dark:bg-emerald-500/10 rounded-lg border border-green-200 dark:border-emerald-500/30">
+                            <div className="flex items-start gap-2.5">
+                              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-0.5">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-green-600 dark:text-emerald-400">
+                                  Fix
+                                </span>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mt-0.5">
+                                  {fix.suggestion}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-200 dark:shadow-green-900/30">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <p className="text-base font-semibold text-gray-900 dark:text-white">Looking great!</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">No major improvements needed for your resume</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
             {/* Matched Jobs */}
-            {displayResult.matchedJobs.length > 0 && (
-              <motion.div
-                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
-                variants={itemVariants}
-              >
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Top Matching Jobs
-                  <span className="ml-auto text-xs font-normal px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+            <motion.div
+              className="rounded-2xl shadow-xl overflow-hidden border border-purple-200/50 dark:border-purple-900/30"
+              variants={itemVariants}
+            >
+              {/* Gradient Header */}
+              <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    Top Matching Jobs
+                  </h2>
+                  <span className="text-sm font-semibold text-white/90 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
                     {displayResult.matchedJobs.length} matches
                   </span>
-                </h2>
-                <div className="space-y-3">
-                  {displayResult.matchedJobs.map((job, i) => (
-                    <motion.a
-                      key={i}
-                      href={`/jobs/${job.jobId}`}
-                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-100 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all group"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.08, duration: 0.3 }}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                          {job.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {job.company}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate">
-                          {job.reason}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                        <div className={`text-xl font-bold ${getScoreColor(job.matchScore)}`}>
-                          {job.matchScore}%
-                        </div>
-                        <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </motion.a>
-                  ))}
                 </div>
-              </motion.div>
-            )}
+                <p className="text-xs text-purple-100/80 mt-2 flex items-center gap-1.5 ml-[42px]">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Personalized scores based on your resume analysis
+                </p>
+              </div>
+
+              {/* Body */}
+              <div className="bg-white dark:bg-slate-800 p-5">
+                {displayResult.matchedJobs.length > 0 ? (
+                  <div className="space-y-3">
+                    {displayResult.matchedJobs.map((job, i) => (
+                      <motion.a
+                        key={i}
+                        href={`/jobs/${job.jobId}`}
+                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl border border-gray-100 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all group shadow-sm hover:shadow-md"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.08, duration: 0.3 }}
+                        whileHover={{ y: -2 }}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          {/* Rank badge */}
+                          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                            <span className="text-xs font-bold text-white">#{i + 1}</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors truncate text-sm">
+                              {job.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {job.company}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate">
+                              {job.reason}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 ml-4 flex-shrink-0">
+                          <div className={`text-2xl font-extrabold ${getScoreColor(job.matchScore)}`}>
+                            {job.matchScore}%
+                          </div>
+                          <span className="text-[9px] text-purple-500 dark:text-purple-400 font-bold uppercase tracking-wider bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">resume match</span>
+                        </div>
+                      </motion.a>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-200 dark:shadow-purple-900/30">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-base font-semibold text-gray-900 dark:text-white">No matching jobs found</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Try broadening your target role or check back when new jobs are ingested</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
         ) : (
           /* Upload Form */
@@ -976,7 +1037,7 @@ export default function ResumeAnalyzerPage() {
                       {history.map((item) => (
                         <div
                           key={item._id}
-                          className="flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors group cursor-pointer"
+                          className="flex items-center gap-3 p-4 active:bg-gray-50 sm:hover:bg-gray-50 dark:active:bg-slate-700/50 sm:dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
                           onClick={() => handleViewHistoryItem(item._id)}
                         >
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0 bg-gradient-to-br ${getScoreBg(item.overallScore)}`}>
@@ -997,7 +1058,7 @@ export default function ResumeAnalyzerPage() {
                           ) : (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDeleteHistoryItem(item._id); }}
-                              className="p-1.5 text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0"
+                              className="p-1.5 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-all rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0"
                               title="Delete"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

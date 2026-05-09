@@ -95,8 +95,8 @@ export const JobCard: React.FC<JobCardProps> = ({ job, variant = 'default', inde
               </span>
               <div className="absolute right-0 top-8 z-50 hidden sm:invisible sm:block sm:group-hover:visible opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
                 <div className="bg-gray-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-xl p-2.5 w-48 whitespace-normal">
-                  <div className="font-semibold mb-1">Match Score: {scorePercent}%</div>
-                  <div className="text-[10px] text-gray-300">Based on recency & relevance</div>
+                  <div className="font-semibold mb-1">Job Score: {scorePercent}%</div>
+                  <div className="text-[10px] text-gray-300">General score based on recency & relevance — same for all users</div>
                 </div>
               </div>
             </div>
