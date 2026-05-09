@@ -7,7 +7,16 @@ const withPWAConfig = withPWA({
   register: false, // We handle registration manually in ServiceWorkerRegistrator
   skipWaiting: true,
   buildExcludes: [/manifest$/], // Don't generate manifest, use static one
+  publicExcludes: ['!sw.js'], // Let next-pwa fully control sw.js generation
   runtimeCaching: [
+    // Exclude SSE /events endpoint from all caching
+    {
+      urlPattern: /\/events$/,
+      handler: "NetworkOnly",
+      options: {
+        cacheName: "sse-events",
+      },
+    },
     {
       urlPattern: /^https:\/\/api\..*\/.*/i,
       handler: "NetworkFirst",
@@ -65,6 +74,8 @@ const withPWAConfig = withPWA({
     },
   ],
   disable: process.env.NEXT_PUBLIC_DISABLE_PWA === "true",
+  // Exclude SSE endpoints from service worker caching
+  navigateFallbackDenylist: [/^\/events/],
 });
 
 const nextConfig: NextConfig = {
