@@ -7,6 +7,7 @@ const NotificationSchema = new mongoose.Schema(
     meta: { type: Object },
     createdAt: { type: Date, default: Date.now },
     dedupKey: { type: String }, // for deduplication
+    isRead: { type: Boolean, default: false }, // false = unread
   },
   { timestamps: true }
 );

@@ -6,6 +6,7 @@ import { Header } from "@/modules/common/components/Header";
 import { OfflineIndicator } from "@/modules/common/components/OfflineIndicator";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ServiceWorkerRegistrator } from "./ServiceWorkerRegistrator";
+import { SSEConnector } from "./SSEConnector";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,6 +70,7 @@ export default function RootLayout({
         <ServiceWorkerRegistrator />
         <ThemeProvider>
           <Providers>
+            <SSEConnector />
             <Header />
             <main className="flex-1">{children}</main>
             <OfflineIndicator />

@@ -3,6 +3,8 @@ import { fetchAllJobs } from './fetcherService.js';
 import { deduplicateJobs, archiveOldJobs } from './deduplicateService.js';
 import { scoreAllJobs } from './scoringService.js';
 import { createNotification } from './notificationService.js';
+import { broadcastNewJobs } from './sseService.js';
+import { cacheDelKeys } from '../utils/cache.js';
 
 /**
  * Job Aggregation Service
@@ -99,6 +101,10 @@ export const runJobIngestionPipeline = async (options = {}) => {
             meta: { count: summary.newSaved, filters: options },
             dedupKey,
           });
+          // Push live event to all connected browsers
+          broadcastNewJobs(summary.newSaved);
+          // Invalidate cached unread-count so next poll gets fresh data
+          await cacheDelKeys('notifications:unread-count');
         }
       } catch (error) {
         console.error(`\n❌ SAVE ERROR:`);

@@ -5,4 +5,5 @@ export interface Notification {
   meta?: Record<string, any>;
   createdAt: string;
   dedupKey?: string;
+  isRead: boolean;
 }

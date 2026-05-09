@@ -1,14 +1,16 @@
 import Notification from '../models/Notification.js';
+import { cacheGet, cacheSet, cacheDelKeys } from '../utils/cache.js';
+
+const UNREAD_COUNT_KEY = 'notifications:unread-count';
+const UNREAD_COUNT_TTL = 30; // 30 seconds — short TTL so badge stays fresh
 
 // Get all notifications (most recent first)
 export const getAllNotifications = async (request, reply) => {
   try {
-    // Pagination params
     const page = parseInt(request.query.page) || 1;
     const limit = parseInt(request.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    // Get total count for pagination
     const total = await Notification.countDocuments();
     const notifications = await Notification.find()
       .sort({ createdAt: -1 })
@@ -24,6 +26,32 @@ export const getAllNotifications = async (request, reply) => {
     });
   } catch (err) {
     reply.code(500).send({ error: 'Failed to fetch notifications' });
+  }
+};
+
+// Count unread notifications (Redis-cached for 30 s)
+export const getUnreadCount = async (request, reply) => {
+  try {
+    const cached = await cacheGet(UNREAD_COUNT_KEY);
+    if (cached !== null) return reply.send(cached);
+
+    const count = await Notification.countDocuments({ isRead: false });
+    const payload = { count };
+    await cacheSet(UNREAD_COUNT_KEY, payload, UNREAD_COUNT_TTL);
+    reply.send(payload);
+  } catch (err) {
+    reply.code(500).send({ error: 'Failed to count unread notifications' });
+  }
+};
+
+// Mark all notifications as read
+export const markAllRead = async (request, reply) => {
+  try {
+    await Notification.updateMany({ isRead: false }, { $set: { isRead: true } });
+    await cacheDelKeys(UNREAD_COUNT_KEY); // invalidate cached count
+    reply.send({ success: true });
+  } catch (err) {
+    reply.code(500).send({ error: 'Failed to mark notifications as read' });
   }
 };
 
