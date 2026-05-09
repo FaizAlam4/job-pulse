@@ -23,6 +23,7 @@ describe('fetcherService', () => {
               title: 'Node Dev',
               company_name: 'RemoteCo',
               candidate_required_location: 'Worldwide',
+              category: 'Software Development',
               description: 'Build APIs',
               publication_date: '2024-01-15T00:00:00',
               id: 12345,
@@ -32,7 +33,7 @@ describe('fetcherService', () => {
         },
       });
 
-      const jobs = await fetchFromRemotive('backend');
+      const jobs = await fetchFromRemotive();
       expect(jobs).toHaveLength(1);
       expect(jobs[0].title).toBe('Node Dev');
       expect(jobs[0].company).toBe('RemoteCo');
@@ -43,13 +44,13 @@ describe('fetcherService', () => {
 
     it('returns empty array on API error', async () => {
       axios.get.mockRejectedValueOnce(new Error('Network error'));
-      const jobs = await fetchFromRemotive('backend');
+      const jobs = await fetchFromRemotive();
       expect(jobs).toEqual([]);
     });
 
     it('handles empty jobs response', async () => {
       axios.get.mockResolvedValueOnce({ data: { jobs: [] } });
-      const jobs = await fetchFromRemotive('backend');
+      const jobs = await fetchFromRemotive();
       expect(jobs).toEqual([]);
     });
 
@@ -57,11 +58,11 @@ describe('fetcherService', () => {
       axios.get.mockResolvedValueOnce({
         data: {
           jobs: [{
-            title: 'Dev', company_name: 'Co', description: '', id: 1, url: 'x',
+            title: 'Dev', company_name: 'Co', category: 'Software Development', description: '', id: 1, url: 'x',
           }],
         },
       });
-      const jobs = await fetchFromRemotive('backend');
+      const jobs = await fetchFromRemotive();
       expect(jobs[0].location).toBe('Remote');
     });
   });

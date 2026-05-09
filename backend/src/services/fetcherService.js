@@ -1,5 +1,11 @@
 import axios from 'axios';
 import { config } from '../config/index.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Build time filter query modifier
@@ -233,22 +239,47 @@ export const fetchFromGoogleJobs = async (query = 'backend developer', options =
 
 /**
  * Fetch jobs from Remotive API
- * Remotive provides free, comprehensive job listings including remote jobs
+ * Remotive's free API returns a fixed set of ~20 jobs (delayed 24h).
+ * Category/search params are ignored by the API, so we filter client-side.
+ * Max 4 requests/day recommended. In dev mode, uses saved sample to avoid API calls.
  * 
- * @param {string} category - Job category (e.g., "backend", "frontend")
- * @returns {Promise<Array>} Array of job objects
+ * @returns {Promise<Array>} Array of job objects (filtered to tech-related)
  */
-export const fetchFromRemotive = async (category = 'backend') => {
+// Categories we consider relevant for software/tech jobs
+const REMOTIVE_TECH_CATEGORIES = new Set([
+  'Software Development', 'Devops', 'Artificial Intelligence',
+  'Engineering', 'Data and Analytics', 'Quality Assurance',
+  'Information Technology',
+]);
+
+export const fetchFromRemotive = async () => {
   const REMOTIVE_API_URL = 'https://remotive.com/api/remote-jobs';
+  const samplePath = path.resolve(__dirname, '../../scripts/remotive_sample_response.json');
   try {
-    console.log(`📡 Fetching jobs from Remotive: "${category}"`);
-    const response = await axios.get(REMOTIVE_API_URL, {
-      params: { category },
-      timeout: 10000,
-    });
-    const jobs = response.data.jobs || [];
+    let jobs;
+    // In development, use saved sample to avoid unnecessary API calls (max 4/day)
+    if (config.nodeEnv === 'development' && fs.existsSync(samplePath)) {
+      console.log(`📡 Fetching jobs from Remotive: using saved sample (dev mode)`);
+      const data = JSON.parse(fs.readFileSync(samplePath, 'utf-8'));
+      jobs = data.jobs || [];
+    } else {
+      console.log(`📡 Fetching jobs from Remotive...`);
+      const response = await axios.get(REMOTIVE_API_URL, {
+        timeout: 10000,
+      });
+      jobs = response.data.jobs || [];
+      // Save response for future dev use
+      try {
+        fs.writeFileSync(samplePath, JSON.stringify(response.data, null, 2));
+      } catch (e) { /* ignore write errors */ }
+    }
+
+    // Filter to tech-related jobs only (API ignores category param)
+    const techJobs = jobs.filter(job => REMOTIVE_TECH_CATEGORIES.has(job.category));
+    console.log(`   Filtered: ${jobs.length} total → ${techJobs.length} tech jobs`);
+
     // Normalize Remotive response to match Google Jobs schema
-    return jobs.map((job) => ({
+    return techJobs.map((job) => ({
       title: job.title,
       company: job.company_name,
       location: job.candidate_required_location || 'Remote',
@@ -349,7 +380,7 @@ export const fetchAllJobs = async (options = {}) => {
     // Fetch from Remotive if enabled
     if (config.includeRemotive) {
       console.log('\n🌐 Fetching from Remotive (remote jobs)...');
-      const remotiveJobs = await fetchFromRemotive('backend');
+      const remotiveJobs = await fetchFromRemotive();
       allJobs.push(...remotiveJobs);
     }
 
