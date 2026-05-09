@@ -291,6 +291,7 @@ export const notificationSchema = {
     type: { type: 'string', enum: ['info', 'success', 'warning', 'error'] },
     meta: { type: 'object', additionalProperties: true },
     dedupKey: { type: 'string' },
+    isRead: { type: 'boolean' },
     createdAt: { type: 'string', format: 'date-time' },
   },
 };

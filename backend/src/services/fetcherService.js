@@ -54,6 +54,22 @@ const getCountryCode = (country) => {
   return countryMap[country?.toLowerCase()] || null;
 };
 
+// Map short country names to full location strings SerpAPI understands
+const getCountryLocation = (country) => {
+  const locationMap = {
+    'usa': 'United States', 'us': 'United States', 'united states': 'United States', 'america': 'United States',
+    'uk': 'United Kingdom', 'united kingdom': 'United Kingdom', 'england': 'United Kingdom', 'britain': 'United Kingdom',
+    'india': 'India',
+    'germany': 'Germany',
+    'canada': 'Canada',
+    'australia': 'Australia',
+    'france': 'France',
+    'japan': 'Japan',
+    'singapore': 'Singapore',
+  };
+  return locationMap[country?.toLowerCase()] || country;
+};
+
 /**
  * Fetch jobs from Google Jobs via SerpAPI
  * SerpAPI provides structured access to Google Jobs search results
@@ -305,7 +321,7 @@ export const fetchAllJobs = async (options = {}) => {
       for (const targetCountry of countries) {
         for (const searchQuery of queries) {
           const googleOptions = {
-            location: filters.location || (targetCountry === 'India' ? 'India' : targetCountry),
+            location: filters.location || getCountryLocation(targetCountry),
             country: targetCountry,
             remote: filters.remote,
             radius: filters.radius,

@@ -94,7 +94,9 @@ export const runJobIngestionPipeline = async (options = {}) => {
         // Notification: Only if new jobs were saved
         if (summary.newSaved > 0) {
           const now = new Date();
-          const dedupKey = `ingest-${now.toISOString().slice(0,13)}`; // hour granularity
+          // Include filters in dedupKey so different searches create separate notifications
+          const filterSuffix = [options.query, options.country].filter(Boolean).join('-').toLowerCase().replace(/\s+/g, '_') || 'default';
+          const dedupKey = `ingest-${now.toISOString().slice(0,13)}-${filterSuffix}`;
           await createNotification({
             message: `${summary.newSaved} new jobs posted`,
             type: 'success',

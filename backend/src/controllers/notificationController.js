@@ -15,10 +15,17 @@ export const getAllNotifications = async (request, reply) => {
     const notifications = await Notification.find()
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean(); // plain JS objects for easy transformation
+
+    // Ensure isRead is always present (older docs may lack it)
+    const items = notifications.map(n => ({
+      ...n,
+      isRead: n.isRead === true,
+    }));
 
     reply.send({
-      items: notifications,
+      items,
       total,
       page,
       limit,
@@ -35,7 +42,7 @@ export const getUnreadCount = async (request, reply) => {
     const cached = await cacheGet(UNREAD_COUNT_KEY);
     if (cached !== null) return reply.send(cached);
 
-    const count = await Notification.countDocuments({ isRead: false });
+    const count = await Notification.countDocuments({ isRead: { $ne: true } });
     const payload = { count };
     await cacheSet(UNREAD_COUNT_KEY, payload, UNREAD_COUNT_TTL);
     reply.send(payload);
@@ -47,7 +54,7 @@ export const getUnreadCount = async (request, reply) => {
 // Mark all notifications as read
 export const markAllRead = async (request, reply) => {
   try {
-    await Notification.updateMany({ isRead: false }, { $set: { isRead: true } });
+    await Notification.updateMany({ isRead: { $ne: true } }, { $set: { isRead: true } });
     await cacheDelKeys(UNREAD_COUNT_KEY); // invalidate cached count
     reply.send({ success: true });
   } catch (err) {

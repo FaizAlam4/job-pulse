@@ -26,6 +26,13 @@ export const registerNotificationRoutes = async (fastify) => {
   }, async (request, reply) => {
     const raw = reply.raw;
 
+    // Must set CORS manually — @fastify/cors injects via onSend hook which
+    // never fires because we stream via reply.raw and never call reply.send()
+    const origin = request.headers.origin;
+    if (origin) {
+      raw.setHeader('Access-Control-Allow-Origin', origin);
+      raw.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     raw.setHeader('Content-Type', 'text/event-stream');
     raw.setHeader('Cache-Control', 'no-cache');
     raw.setHeader('Connection', 'keep-alive');

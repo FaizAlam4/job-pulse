@@ -126,9 +126,35 @@ job-pulse/
 | `GET /tracking` | Your tracked applications |
 | `POST /tracking` | Track a job |
 | `GET /insights/overview` | Personal analytics |
+| `GET /notifications` | List notifications |
+| `GET /notifications/unread-count` | Unread badge count |
+| `PATCH /notifications/mark-all-read` | Mark all as read |
+| `GET /events` | **SSE** — real-time job alerts |
 | `GET /health` | Health check |
 
 All endpoints are fully documented in Swagger UI at `/docs`.
+
+---
+
+## Real-Time Notifications (SSE)
+
+The app broadcasts live notifications when new jobs are ingested:
+
+```
+GET /events  →  Server-Sent Events stream
+```
+
+**Events:**
+- `connected` — connection established
+- `new-jobs` — `{ "count": 10 }` when new jobs are saved
+- `: ping` — keepalive every 25s
+
+**Frontend integration:**
+- `useSSE` hook auto-connects and dispatches Redux actions
+- `NotificationBell` shows unread count badge
+- Modal content updates in real-time (no refresh needed)
+
+**Deduplication:** Notifications are deduplicated per hour + filter combination, so running the same ingest twice within an hour won't create duplicate alerts.
 
 ---
 

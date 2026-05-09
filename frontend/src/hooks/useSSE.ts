@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { newJobsReceived } from '@/modules/notifications/store/notificationSlice';
+import { newJobsReceived, fetchNotificationsRequest } from '@/modules/notifications/store/notificationSlice';
 import { API_BASE_URL } from '@/constants/api';
 
 const RETRY_DELAY_MS = 5000;
@@ -26,10 +26,14 @@ export function useSSE() {
 
       es.addEventListener('new-jobs', (e: MessageEvent) => {
         try {
-          const payload = JSON.parse(e.data) as { count: number };
-          dispatch(newJobsReceived(payload.count ?? 1));
+          JSON.parse(e.data); // validate payload
+          // Each SSE event = 1 new notification (regardless of job count inside)
+          dispatch(newJobsReceived(1));
+          // Also refresh the notifications list so modal shows new items
+          dispatch(fetchNotificationsRequest({ page: 1 }));
         } catch (_) {
           dispatch(newJobsReceived(1));
+          dispatch(fetchNotificationsRequest({ page: 1 }));
         }
       });
 
