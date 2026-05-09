@@ -2,6 +2,7 @@ import Job from '../models/Job.js';
 import { getTopJobs, filterJobs, scoreAllJobs } from '../services/scoringService.js';
 import { runJobIngestionPipeline } from '../services/aggregationService.js';
 import { deleteOldJobs, deduplicateJobs, archiveOldJobs } from '../services/deduplicateService.js';
+import { createNotification } from '../services/notificationService.js';
 import { cacheGet, cacheSet, cacheDel, buildCacheKey, TTL } from '../utils/cache.js';
 import fs from 'fs';
 import path from 'path';
@@ -502,6 +503,14 @@ export const cleanupOldJobs = async (req, reply) => {
     }
 
     const result = await deleteOldJobs(daysInt);
+
+    if (result.deletedCount > 0) {
+      await createNotification({
+        message: `Cleanup: ${result.deletedCount} expired job${result.deletedCount === 1 ? '' : 's'} removed (${daysInt}+ days old), freed ${result.freedMB}MB`,
+        type: 'cleanup',
+        meta: { deletedCount: result.deletedCount, freedMB: result.freedMB },
+      });
+    }
 
     cacheDel('jobs:*');
 

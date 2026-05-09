@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { runJobIngestionPipeline } from '../services/aggregationService.js';
 import { deleteOldJobs } from '../services/deduplicateService.js';
+import { createNotification } from '../services/notificationService.js';
 import { config } from '../config/index.js';
 import { cacheDel } from '../utils/cache.js';
 
@@ -51,6 +52,13 @@ export const startScheduler = () => {
       try {
         const result = await deleteOldJobs(20);
         console.log(`✓ Cleanup completed: Deleted ${result.deletedCount} jobs, freed ${result.freedMB}MB`);
+        if (result.deletedCount > 0) {
+          await createNotification({
+            message: `Cleanup: ${result.deletedCount} expired job${result.deletedCount === 1 ? '' : 's'} removed (20+ days old), freed ${result.freedMB}MB`,
+            type: 'cleanup',
+            meta: { deletedCount: result.deletedCount, freedMB: result.freedMB },
+          });
+        }
         cacheDel('jobs:*');
       } catch (error) {
         console.error(`✗ Cleanup error: ${error.message}`);
