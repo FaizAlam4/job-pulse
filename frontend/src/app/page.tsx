@@ -182,6 +182,64 @@ export default function HomePage() {
         </div>
       </motion.div>
 
+      {/* AI Feature Banner */}
+      <div className="relative bg-gradient-to-r from-rose-600 via-orange-500 to-amber-400 dark:from-[#0d0b1a] dark:via-[#120d2e] dark:to-[#0d0b1a] border-b border-orange-400/30 dark:border-violet-900/40 overflow-hidden">
+        {/* Diagonal shine sweep — light mode only */}
+        <div className="pointer-events-none absolute inset-0 dark:hidden">
+          <div className="absolute -left-10 top-0 h-full w-32 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] translate-x-8" />
+          <div className="absolute right-1/4 top-0 h-full w-16 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]" />
+        </div>
+        {/* Dark mode glows */}
+        <div className="pointer-events-none absolute inset-0 hidden dark:block">
+          <div className="absolute left-1/4 top-1/2 -translate-y-1/2 h-16 w-72 rounded-full bg-violet-700/20 blur-2xl" />
+          <div className="absolute right-1/3 top-1/2 -translate-y-1/2 h-16 w-48 rounded-full bg-purple-600/15 blur-2xl" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+          {/* Mobile: single row — title + CTA */}
+          <div className="flex items-center justify-between gap-3 sm:hidden">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="inline-flex shrink-0 items-center bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest uppercase border border-white/40 backdrop-blur-sm">
+                New
+              </span>
+              <span className="font-semibold text-white text-sm truncate drop-shadow">🤖 AI Resume Analyzer</span>
+            </div>
+            <a
+              href="/resume-analyzer"
+              className="shrink-0 inline-flex items-center bg-white/95 text-orange-600 font-bold text-xs px-3 py-1.5 rounded-full hover:bg-white transition-all shadow-lg shadow-black/20 dark:bg-gradient-to-r dark:from-violet-600 dark:to-purple-600 dark:text-white dark:font-semibold dark:hover:from-violet-500 dark:hover:to-purple-500 dark:shadow-violet-500/25 whitespace-nowrap"
+            >
+              Try free →
+            </a>
+          </div>
+
+          {/* Tablet+: all features + CTA */}
+          <div className="hidden sm:flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm">
+              <span className="flex items-center gap-2 mr-2">
+                <span className="inline-flex items-center bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest uppercase border border-white/40 backdrop-blur-sm">
+                  New
+                </span>
+                <span className="font-bold text-white drop-shadow">🤖 AI Resume Analyzer</span>
+              </span>
+              <span className="flex items-center gap-2 text-white/85 dark:text-slate-400">
+                <span className="text-white/40 dark:text-slate-700">·</span> 📊 ATS Score &amp; Skill Gap Analysis
+              </span>
+              <span className="flex items-center gap-2 text-white/85 dark:text-slate-400">
+                <span className="text-white/40 dark:text-slate-700">·</span> 🎯 Matched to Jobs on JobPulse
+              </span>
+              <span className="hidden md:flex items-center gap-2 text-white/85 dark:text-slate-400">
+                <span className="text-white/40 dark:text-slate-700">·</span> 📈 Personalized Insights &amp; Tracker
+              </span>
+            </div>
+            <a
+              href="/resume-analyzer"
+              className="shrink-0 inline-flex items-center gap-1.5 bg-white/95 text-orange-600 font-bold text-sm px-4 py-1.5 rounded-full hover:bg-white transition-all shadow-lg shadow-black/20 dark:bg-gradient-to-r dark:from-violet-600 dark:to-purple-600 dark:text-white dark:font-semibold dark:hover:from-violet-500 dark:hover:to-purple-500 dark:shadow-violet-500/25 whitespace-nowrap"
+            >
+              Try it free →
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Compact Filter Section */}
         <motion.div
