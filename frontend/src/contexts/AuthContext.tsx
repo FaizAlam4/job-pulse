@@ -86,6 +86,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     authService.logout();
     setUser(null);
+    sessionStorage.removeItem('resumeAnalysis');
   };
 
   const updateUser = async (updates: Partial<User>) => {

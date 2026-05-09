@@ -7,7 +7,11 @@ import mongoose from 'mongoose';
 export const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/job-pulse';
-    await mongoose.connect(mongoURI);
+    await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 10000, // 10 seconds to find a server
+      socketTimeoutMS: 45000, // 45 seconds for socket operations
+      maxPoolSize: 10,
+    });
     console.log('✓ MongoDB connected successfully');
   } catch (error) {
     console.error('✗ MongoDB connection error:', error.message);

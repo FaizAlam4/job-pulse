@@ -2,19 +2,21 @@
 
 [![CI](https://github.com/FaizAlam4/job-pulse/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/FaizAlam4/job-pulse/actions/workflows/ci.yml)
 
-A job aggregation platform that fetches listings from multiple sources (Google Jobs via SerpAPI, Remotive), deduplicates them, ranks by relevance, and provides a personal application tracker with analytics — all behind a documented REST API.
+A job aggregation platform with **AI-powered resume analysis**. Fetches listings from multiple sources, deduplicates and ranks them, analyzes your resume against live jobs, and provides a full application tracker with analytics — all behind a documented REST API.
 
-**Stack:** Next.js 15 · Fastify · MongoDB · Redis · Docker · Swagger/OpenAPI
+**Stack:** Next.js 15 · Fastify · MongoDB · Redis · Groq AI · Docker · Swagger/OpenAPI
 
 ---
 
 ## What It Does
 
+- **AI Resume Analyzer** — Upload a PDF resume, get an ATS score, section-by-section improvement suggestions, extracted skills, and matched jobs from the database. Save analyses and revisit history. Powered by Groq (free tier, automatic model fallback)
 - **Aggregates jobs** from Google Jobs + Remotive with configurable scheduling
 - **Deduplicates** listings using content hashing
 - **Ranks & scores** jobs by recency, relevance, and keyword match
 - **Application tracker** — Kanban board with status pipeline (Saved → Applied → Interview → Offer)
 - **Personal insights** — Response rates, trends, skills breakdown, streaks
+- **Real-time notifications** — SSE-powered alerts when new jobs are ingested
 - **PWA** — Offline-capable, installable, dark mode
 
 ---
@@ -130,6 +132,12 @@ job-pulse/
 | `GET /notifications/unread-count` | Unread badge count |
 | `PATCH /notifications/mark-all-read` | Mark all as read |
 | `GET /events` | **SSE** — real-time job alerts |
+| `POST /resume/analyze` | AI resume analysis (multipart form) |
+| `GET /resume/status` | AI provider health check |
+| `POST /resume/history` | Save an analysis result |
+| `GET /resume/history` | List saved analyses |
+| `GET /resume/history/:id` | View a saved analysis |
+| `DELETE /resume/history/:id` | Delete a saved analysis |
 | `GET /health` | Health check |
 
 All endpoints are fully documented in Swagger UI at `/docs`.
@@ -155,6 +163,61 @@ GET /events  →  Server-Sent Events stream
 - Modal content updates in real-time (no refresh needed)
 
 **Deduplication:** Notifications are deduplicated per hour + filter combination, so running the same ingest twice within an hour won't create duplicate alerts.
+
+---
+
+## AI Resume Analyzer
+
+Upload a PDF resume and get AI-powered analysis with job matching.
+
+**Features:**
+- ATS compatibility score (0-100)
+- Section-by-section improvement suggestions with priority levels
+- Skill extraction from resume text
+- Job matching against live listings in the database
+- Save & revisit past analyses (up to 20 per user)
+- Automatic model fallback for high availability
+
+```bash
+curl -X POST http://localhost:3000/resume/analyze \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -F "file=@resume.pdf" \
+  -F "targetRole=Backend Developer" \
+  -F "experienceLevel=3-5" \
+  -F "locationPreference=Remote"
+```
+
+**Response:**
+```json
+{
+  "overallScore": 78,
+  "summary": "Strong technical resume with good project experience...",
+  "extractedSkills": ["JavaScript", "Node.js", "MongoDB", "Docker"],
+  "fixes": [
+    {
+      "section": "Experience",
+      "issue": "Bullet points lack quantifiable metrics",
+      "suggestion": "Add numbers: 'Reduced API latency by 40%'",
+      "priority": "high"
+    }
+  ],
+  "matchedJobs": [
+    { "jobId": "abc123", "title": "Senior Engineer", "company": "Acme", "matchScore": 85, "reason": "Strong Node.js overlap" }
+  ],
+  "modelUsed": "llama-3.3-70b-versatile",
+  "modelTier": "premium"
+}
+```
+
+**Provider:** Groq (free tier)
+- 30 requests/minute, 14,400/day
+- Automatic fallback: `llama-3.3-70b` → `llama-4-scout-17b` → `llama-3.1-8b`
+- ~200-300 resume analyses/day on free tier
+
+**Setup:**
+1. Get free API key at https://console.groq.com/keys
+2. Set `GROQ_API_KEY` in `.env`
+3. `AI_PROVIDER=groq` (default)
 
 ---
 
@@ -224,6 +287,8 @@ All DB-backed tests use an in-memory MongoDB instance and clean up after each te
 | `SERPAPI_KEY` | No | Enables Google Jobs ingestion |
 | `ADMIN_API_KEY` | No | Protects admin/ingest endpoint |
 | `API_BASE_URL` | No | Public API URL (for Swagger server list) |
+| `AI_PROVIDER` | No | `groq` (default) |
+| `GROQ_API_KEY` | No | Groq API key (free at console.groq.com) |
 
 ---
 

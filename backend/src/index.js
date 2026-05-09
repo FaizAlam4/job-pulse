@@ -56,7 +56,7 @@ const initializeServer = async () => {
   await fastify.register(cors, {
     origin: true, // Allow all origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'Accept'],
     credentials: true,
   });
   console.log('✓ CORS enabled for all origins');

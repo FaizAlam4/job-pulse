@@ -160,7 +160,7 @@ export default function TrackerPage() {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                   Application Tracker
                 </h1>
                 <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -603,7 +603,7 @@ export default function TrackerPage() {
             
             {/* Title & Description */}
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 Application Tracker
               </h1>
               <p className="text-gray-600 dark:text-gray-400">

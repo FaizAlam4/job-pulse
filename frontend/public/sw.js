@@ -92,7 +92,7 @@ define(['./workbox-e43f5367'], (function (workbox) { 'use strict';
       }
     }]
   }), 'GET');
-  workbox.registerRoute(/.*/i, new workbox.NetworkOnly({
+  workbox.registerRoute(({url}) => !url.pathname.startsWith('/events'), new workbox.NetworkOnly({
     "cacheName": "dev",
     plugins: []
   }), 'GET');

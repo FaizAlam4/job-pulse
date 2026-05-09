@@ -182,8 +182,7 @@ export default function JobDetailPage() {
           <button
             type="button"
             onClick={() => {
-              dispatch(resetFilters());
-              router.push('/');
+              router.back();
             }}
             className="inline-flex items-center text-sm text-white/80 hover:text-white mb-6 transition-colors"
           >

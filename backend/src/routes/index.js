@@ -16,6 +16,7 @@ import { registerNotificationRoutes } from './notification.js';
 import { registerAuthRoutes } from './auth.js';
 import trackingRoutes from './tracking.js';
 import insightsRoutes from './insights.js';
+import resumeRoutes from './resume.js';
 
 /**
  * Register all job routes
@@ -315,6 +316,11 @@ export const registerJobRoutes = async (fastify) => {
   // Register insights routes (protected by auth - handled inside plugin)
   await fastify.register(insightsRoutes, { 
     prefix: '/insights'
+  });
+  
+  // Register resume analysis routes (protected by auth - handled inside plugin)
+  await fastify.register(resumeRoutes, { 
+    prefix: '/resume'
   });
 };
 

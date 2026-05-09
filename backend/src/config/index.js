@@ -41,6 +41,16 @@ export const config = {
   // Redis (optional — set REDIS_URL to enable caching)
   redisUrl: process.env.REDIS_URL || '',
   redisEnabled: process.env.REDIS_ENABLED !== 'false' && !!process.env.REDIS_URL,
+
+  // AI Configuration (Resume Analyzer)
+  // Supported providers: gemini, groq, openai, claude
+  aiProvider: process.env.AI_PROVIDER || 'groq',
+  // Google Gemini API Key (free tier: 15 RPM, 1M tokens/day)
+  // Get yours at: https://aistudio.google.com/app/apikey
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  // Groq API Key (free tier: 30 RPM, 14,400 requests/day)
+  // Get yours at: https://console.groq.com/keys
+  groqApiKey: process.env.GROQ_API_KEY || '',
 };
 
 export default config;
