@@ -392,11 +392,11 @@ export default function StatsPage() {
                           className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md"
                           whileHover={{ rotate: 5 }}
                         >
-                          {src._id.charAt(0).toUpperCase()}
+                          {(src._id || 'U').charAt(0).toUpperCase()}
                         </motion.div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">{src._id.replace('-', ' ')}</span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">{(src._id || 'Unknown').replace('-', ' ')}</span>
                             <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">{src.count}</span>
                           </div>
                           <div className="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">

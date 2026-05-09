@@ -2,6 +2,7 @@ import Job from '../models/Job.js';
 import { getTopJobs, filterJobs, scoreAllJobs } from '../services/scoringService.js';
 import { runJobIngestionPipeline } from '../services/aggregationService.js';
 import { deleteOldJobs, deduplicateJobs, archiveOldJobs } from '../services/deduplicateService.js';
+import { cacheGet, cacheSet, cacheDel, buildCacheKey, TTL } from '../utils/cache.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -37,6 +38,15 @@ export const getAllJobs = async (req, reply) => {
       sortBy = 'score',
       order = 'desc'
     } = req.query;
+
+    // ── Cache check ──────────────────────────────────────────────────────
+    const cacheKey = buildCacheKey('jobs:list', {
+      search, location, country, state, city, remote,
+      skills, postedWithinHours, limit, page, sortBy, order,
+    });
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
+    // ─────────────────────────────────────────────────────────────────────
 
     const queryLimit = Math.min(parseInt(limit) || 20, 100);
     const currentPage = Math.max(parseInt(page) || 1, 1);
@@ -124,7 +134,7 @@ export const getAllJobs = async (req, reply) => {
       });
     }
 
-    reply.send({
+    const response = {
       success: true,
       data: jobs,
       filters: {
@@ -144,7 +154,12 @@ export const getAllJobs = async (req, reply) => {
         hasNextPage: currentPage < totalPages,
         hasPrevPage: currentPage > 1,
       },
-    });
+    };
+
+    // ── Cache store (no await — don't block response) ────────────────
+    cacheSet(cacheKey, response, TTL.JOBS_LIST);
+
+    reply.send(response);
   } catch (error) {
     reply.status(500).send({
       success: false,
@@ -183,13 +198,21 @@ export const getTopRankedJobs = async (req, reply) => {
     const { limit = 10 } = req.query;
     const queryLimit = Math.min(parseInt(limit) || 10, 50);
 
+    // ── Cache check ──
+    const cacheKey = `jobs:top:${queryLimit}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
+
     const topJobs = await getTopJobs(queryLimit);
 
-    reply.send({
+    const response = {
       success: true,
       data: topJobs,
       count: topJobs.length,
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.JOBS_TOP);
+    reply.send(response);
   } catch (error) {
     reply.status(500).send({
       success: false,
@@ -206,6 +229,11 @@ export const getTopRankedJobs = async (req, reply) => {
 export const getJobById = async (req, reply) => {
   try {
     const { id } = req.params;
+
+    // ── Cache check ──
+    const cacheKey = `jobs:detail:${id}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
 
     const job = await Job.findById(id).select('-__v');
 
@@ -229,13 +257,16 @@ export const getJobById = async (req, reply) => {
       .limit(5)
       .select('title company location score postedAt');
 
-    reply.send({
+    const response = {
       success: true,
       data: {
         job,
         similarJobs,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.JOB_DETAIL);
+    reply.send(response);
   } catch (error) {
     reply.status(400).send({
       success: false,
@@ -262,6 +293,11 @@ export const searchJobs = async (req, reply) => {
       });
     }
 
+    // ── Cache check ──
+    const cacheKey = buildCacheKey('jobs:search', { q: q.trim().toLowerCase(), limit, page });
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
+
     const queryLimit = Math.min(parseInt(limit) || 20, 100);
     const currentPage = Math.max(parseInt(page) || 1, 1);
     const skip = (currentPage - 1) * queryLimit;
@@ -286,7 +322,7 @@ export const searchJobs = async (req, reply) => {
       .limit(queryLimit)
       .select('-__v');
 
-    reply.send({
+    const response = {
       success: true,
       data: jobs,
       query: q,
@@ -298,7 +334,10 @@ export const searchJobs = async (req, reply) => {
         hasNextPage: currentPage < totalPages,
         hasPrevPage: currentPage > 1,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.SEARCH);
+    reply.send(response);
   } catch (error) {
     reply.status(500).send({
       success: false,
@@ -312,6 +351,11 @@ export const searchJobs = async (req, reply) => {
  */
 export const getJobStats = async (req, reply) => {
   try {
+    // ── Cache check ──
+    const cacheKey = 'jobs:stats';
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
+
     const stats = await Job.aggregate([
       {
         $match: { isActive: true },
@@ -339,7 +383,7 @@ export const getJobStats = async (req, reply) => {
       { $limit: 10 },
     ]);
 
-    reply.send({
+    const response = {
       success: true,
       data: {
         overall: stats[0] || {
@@ -351,7 +395,10 @@ export const getJobStats = async (req, reply) => {
         bySource: jobsBySource,
         topLocations: jobsByLocation,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.JOBS_STATS);
+    reply.send(response);
   } catch (error) {
     reply.status(500).send({
       success: false,
@@ -397,6 +444,9 @@ export const triggerIngestion = async (req, reply) => {
     
     const summary = await runJobIngestionPipeline(options);
 
+    // Invalidate all job caches — underlying data changed
+    cacheDel('jobs:*');
+
     reply.send({
       success: true,
       message: 'Job ingestion pipeline executed',
@@ -417,6 +467,8 @@ export const triggerIngestion = async (req, reply) => {
 export const resendAllJobs = async (req, reply) => {
   try {
     const count = await scoreAllJobs();
+
+    cacheDel('jobs:*');
 
     reply.send({
       success: true,
@@ -451,6 +503,8 @@ export const cleanupOldJobs = async (req, reply) => {
 
     const result = await deleteOldJobs(daysInt);
 
+    cacheDel('jobs:*');
+
     reply.send({
       success: true,
       message: `Cleanup completed`,
@@ -470,7 +524,9 @@ export const cleanupOldJobs = async (req, reply) => {
 export const debugDeleteAllJobs = async (req, reply) => {
   try {
     const result = await Job.deleteMany({});
-    
+
+    cacheDel('jobs:*');
+
     reply.send({
       success: true,
       message: 'All jobs deleted',

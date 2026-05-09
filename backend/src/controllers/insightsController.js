@@ -5,6 +5,7 @@
 
 import Tracking from '../models/Tracking.js';
 import mongoose from 'mongoose';
+import { cacheGet, cacheSet, buildCacheKey, TTL } from '../utils/cache.js';
 
 /**
  * Get dashboard overview stats
@@ -14,6 +15,11 @@ export const getOverviewStats = async (request, reply) => {
   try {
     const userId = request.user.userId;
     const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    // ── Cache check (user-scoped) ──
+    const cacheKey = `insights:overview:${userId}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
 
     // Get all tracking data for user
     const trackings = await Tracking.find({ userId: userObjectId });
@@ -76,22 +82,46 @@ export const getOverviewStats = async (request, reply) => {
         ? 100
         : 0;
 
-    // Average time to response (days between applied and next status)
+    // Average time to response (days between last non-response status and first response status)
+    const responseStatuses = ['phone-screen', 'interview', 'offer', 'rejected'];
     const responseTimes = [];
     trackings.forEach((t) => {
-      if (t.statusHistory && t.statusHistory.length >= 2) {
-        const appliedEntry = t.statusHistory.find((h) => h.status === 'applied');
-        const responseEntry = t.statusHistory.find((h) =>
-          ['phone-screen', 'interview', 'offer', 'rejected'].includes(h.status)
+      // Current status must be a response status
+      if (!responseStatuses.includes(t.status)) return;
+
+      if (t.statusHistory && t.statusHistory.length > 0) {
+        // Sort history by date ascending
+        const sorted = [...t.statusHistory].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
         );
-        if (appliedEntry && responseEntry) {
+
+        // Find first response status entry
+        const firstResponse = sorted.find((h) =>
+          responseStatuses.includes(h.status)
+        );
+        // Find last non-response status entry before the first response
+        const nonResponseEntries = sorted.filter(
+          (h) =>
+            !responseStatuses.includes(h.status) &&
+            (!firstResponse || new Date(h.date) <= new Date(firstResponse.date))
+        );
+        const lastNonResponse =
+          nonResponseEntries.length > 0
+            ? nonResponseEntries[nonResponseEntries.length - 1]
+            : null;
+
+        if (firstResponse && lastNonResponse) {
           const days =
-            (new Date(responseEntry.date) - new Date(appliedEntry.date)) /
+            (new Date(firstResponse.date) - new Date(lastNonResponse.date)) /
             (1000 * 60 * 60 * 24);
-          if (days > 0 && days < 365) {
-            responseTimes.push(days);
-          }
+          responseTimes.push(Math.max(0, days));
+        } else {
+          // Tracked directly with a response status — 0 days
+          responseTimes.push(0);
         }
+      } else {
+        // No history but has response status — 0 days
+        responseTimes.push(0);
       }
     });
     const avgTimeToResponse =
@@ -119,7 +149,7 @@ export const getOverviewStats = async (request, reply) => {
       priorityDistribution[priority] = (priorityDistribution[priority] || 0) + 1;
     });
 
-    return reply.send({
+    const response = {
       success: true,
       data: {
         totalApplications: trackings.length,
@@ -132,7 +162,10 @@ export const getOverviewStats = async (request, reply) => {
         topCompanies,
         priorityDistribution,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.INSIGHTS);
+    return reply.send(response);
   } catch (error) {
     console.error('Error getting overview stats:', error);
     return reply.status(500).send({
@@ -152,6 +185,11 @@ export const getApplicationTrends = async (request, reply) => {
     const userId = request.user.userId;
     const userObjectId = new mongoose.Types.ObjectId(userId);
     const { period = '30' } = request.query; // days
+
+    // ── Cache check (user + period scoped) ──
+    const cacheKey = `insights:trends:${userId}:${period}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
 
     const daysAgo = parseInt(period);
     const startDate = new Date();
@@ -215,14 +253,17 @@ export const getApplicationTrends = async (request, reply) => {
       return { ...d, cumulative };
     });
 
-    return reply.send({
+    const response = {
       success: true,
       data: {
         daily: trendData,
         cumulative: cumulativeData,
         period: daysAgo,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.INSIGHTS);
+    return reply.send(response);
   } catch (error) {
     console.error('Error getting application trends:', error);
     return reply.status(500).send({
@@ -241,6 +282,11 @@ export const getSourcesBreakdown = async (request, reply) => {
   try {
     const userId = request.user.userId;
     const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    // ── Cache check ──
+    const cacheKey = `insights:sources:${userId}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
 
     const trackings = await Tracking.find({ userId: userObjectId });
 
@@ -276,10 +322,13 @@ export const getSourcesBreakdown = async (request, reply) => {
     // Sort by total applications
     sources.sort((a, b) => b.total - a.total);
 
-    return reply.send({
+    const response = {
       success: true,
       data: sources,
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.INSIGHTS);
+    return reply.send(response);
   } catch (error) {
     console.error('Error getting sources breakdown:', error);
     return reply.status(500).send({
@@ -298,6 +347,11 @@ export const getSkillsAnalysis = async (request, reply) => {
   try {
     const userId = request.user.userId;
     const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    // ── Cache check ──
+    const cacheKey = `insights:skills:${userId}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
 
     const trackings = await Tracking.find({ userId: userObjectId });
 
@@ -370,14 +424,17 @@ export const getSkillsAnalysis = async (request, reply) => {
       }
     });
 
-    return reply.send({
+    const response = {
       success: true,
       data: {
         topSkills: skills,
         categories,
         totalUniqueSkills: Object.keys(keywordCounts).length,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.INSIGHTS);
+    return reply.send(response);
   } catch (error) {
     console.error('Error getting skills analysis:', error);
     return reply.status(500).send({
@@ -396,6 +453,11 @@ export const getGoalsProgress = async (request, reply) => {
   try {
     const userId = request.user.userId;
     const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    // ── Cache check ──
+    const cacheKey = `insights:goals:${userId}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
 
     const now = new Date();
     const startOfWeek = new Date(now);
@@ -468,12 +530,16 @@ export const getGoalsProgress = async (request, reply) => {
       ),
     ];
 
+    let currentStreakDone = false;
+
     uniqueDates.forEach((dateStr, index) => {
       const date = new Date(dateStr);
       if (index === 0) {
         tempStreak = 1;
         if (isToday(date) || isYesterday(date)) {
           currentStreak = 1;
+        } else {
+          currentStreakDone = true;
         }
       } else {
         const prevDate = new Date(uniqueDates[index - 1]);
@@ -482,16 +548,17 @@ export const getGoalsProgress = async (request, reply) => {
         );
         if (diffDays === 1) {
           tempStreak++;
-          if (currentStreak > 0) currentStreak++;
+          if (!currentStreakDone) currentStreak++;
         } else {
           longestStreak = Math.max(longestStreak, tempStreak);
           tempStreak = 1;
+          currentStreakDone = true; // Gap found — current streak is finalized
         }
       }
     });
     longestStreak = Math.max(longestStreak, tempStreak);
 
-    return reply.send({
+    const response = {
       success: true,
       data: {
         goals,
@@ -500,7 +567,10 @@ export const getGoalsProgress = async (request, reply) => {
           longest: longestStreak,
         },
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.INSIGHTS);
+    return reply.send(response);
   } catch (error) {
     console.error('Error getting goals progress:', error);
     return reply.status(500).send({

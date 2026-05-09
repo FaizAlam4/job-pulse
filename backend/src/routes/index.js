@@ -11,6 +11,7 @@ import {
   debugDeleteAllJobs,
 } from '../controllers/jobController.js';
 import { apiKeyAuth } from '../middleware/apiKeyAuth.js';
+import redis from '../config/redis.js';
 import { registerNotificationRoutes } from './notification.js';
 import { registerAuthRoutes } from './auth.js';
 import trackingRoutes from './tracking.js';
@@ -50,7 +51,7 @@ export const registerJobRoutes = async (fastify) => {
           properties: {
             success: { type: 'boolean' },
             data: { type: 'array', items: { $ref: 'Job#' } },
-            filters: { type: 'object' },
+            filters: { type: 'object', additionalProperties: true },
             pagination: { $ref: 'Pagination#' },
           },
         },
@@ -135,8 +136,26 @@ export const registerJobRoutes = async (fastify) => {
                     oldestJob: { type: 'string', format: 'date-time', nullable: true },
                   },
                 },
-                bySource: { type: 'array', items: { type: 'object' } },
-                topLocations: { type: 'array', items: { type: 'object' } },
+                bySource: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      _id: { type: 'string', nullable: true },
+                      count: { type: 'integer' },
+                    },
+                  },
+                },
+                topLocations: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      _id: { type: 'string', nullable: true },
+                      count: { type: 'integer' },
+                    },
+                  },
+                },
               },
             },
           },
@@ -201,8 +220,8 @@ export const registerJobRoutes = async (fastify) => {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
-            filtersApplied: {},
-            data: { type: 'object' },
+            filtersApplied: { type: 'object', additionalProperties: true },
+            data: { type: 'object', additionalProperties: true },
           },
         },
       },
@@ -245,7 +264,7 @@ export const registerJobRoutes = async (fastify) => {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
-            data: { type: 'object' },
+            data: { type: 'object', additionalProperties: true },
           },
         },
       },
@@ -315,12 +334,22 @@ export const registerUtilityRoutes = async (fastify) => {
           properties: {
             status: { type: 'string', example: 'ok' },
             timestamp: { type: 'string', format: 'date-time' },
+            cache: { type: 'string', example: 'connected' },
           },
         },
       },
     },
-  }, (req, reply) => {
-    reply.send({ status: 'ok', timestamp: new Date().toISOString() });
+  }, async (req, reply) => {
+    let cacheStatus = 'disabled';
+    if (redis) {
+      try {
+        await redis.ping();
+        cacheStatus = 'connected';
+      } catch {
+        cacheStatus = 'disconnected';
+      }
+    }
+    reply.send({ status: 'ok', timestamp: new Date().toISOString(), cache: cacheStatus });
   });
 
   // API info

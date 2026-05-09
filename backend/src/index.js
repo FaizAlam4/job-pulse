@@ -5,6 +5,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { connectDB, disconnectDB } from './config/database.js';
 import { config } from './config/index.js';
+import redis from './config/redis.js';
 import { registerJobRoutes, registerUtilityRoutes } from './routes/index.js';
 import { startScheduler, stopScheduler } from './schedulers/jobScheduler.js';
 import { startNotificationCleanupScheduler, stopNotificationCleanupScheduler } from './schedulers/notificationScheduler.js';
@@ -146,6 +147,7 @@ const initializeServer = async () => {
     stopScheduler();
     stopNotificationCleanupScheduler();
     await fastify.close();
+    if (redis) await redis.quit();
     await disconnectDB();
 
     process.exit(0);
@@ -164,7 +166,8 @@ const initializeServer = async () => {
     console.log('╚════════════════════════════════════╝\n');
     console.log(`✓ Server running on http://localhost:${config.port}`);
     console.log(`✓ Environment: ${config.nodeEnv}`);
-    console.log(`✓ Database: ${config.mongodbUri}\n`);
+    console.log(`✓ Database: ${config.mongodbUri}`);
+    console.log(`✓ Cache: ${config.redisEnabled ? 'Redis enabled' : 'disabled (no REDIS_URL)'}\n`);
   } catch (err) {
     console.error('Server startup error:', err);
     process.exit(1);

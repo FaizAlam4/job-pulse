@@ -2,7 +2,7 @@
 
 A job aggregation platform that fetches listings from multiple sources (Google Jobs via SerpAPI, Remotive), deduplicates them, ranks by relevance, and provides a personal application tracker with analytics — all behind a documented REST API.
 
-**Stack:** Next.js 15 · Fastify · MongoDB · Docker · Swagger/OpenAPI
+**Stack:** Next.js 15 · Fastify · MongoDB · Redis · Docker · Swagger/OpenAPI
 
 ---
 
@@ -130,12 +130,43 @@ All endpoints are fully documented in Swagger UI at `/docs`.
 
 ---
 
+## Redis Caching Layer
+
+Optional cache-aside (lazy-loading) layer using Redis. Fully toggleable — the app runs fine without it.
+
+| What's cached | TTL | Invalidated on |
+|---------------|-----|----------------|
+| Job listings, search, top-ranked | 5–10 min | New ingestion, cleanup |
+| Job detail | 30 min | — |
+| Insights (overview, trends, skills, goals) | 5 min | Tracking mutations |
+| Tracking list & analytics | 2 min | Track/update/delete |
+
+**How it works:**
+- Read path: check Redis → cache hit returns instantly, cache miss queries MongoDB and writes to cache
+- Write path: mutating endpoints (`POST /tracking`, status changes, ingestion) invalidate related cache keys using `SCAN` (not `KEYS`)
+- Graceful degradation: if Redis is down or not configured, all cache calls are safe no-ops
+
+**Toggle caching:**
+```bash
+# Enable (set REDIS_URL in .env)
+REDIS_URL=redis://localhost:6379
+
+# Temporarily disable (keeps REDIS_URL but skips connection)
+REDIS_ENABLED=false
+```
+
+Health check reports cache status: `GET /health` → `{ cache: "connected" | "disconnected" | "disabled" }`
+
+---
+
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MONGODB_URI` | Yes | MongoDB connection string |
 | `JWT_SECRET` | Yes | JWT signing secret (32+ chars) |
+| `REDIS_URL` | No | Redis connection URL (enables caching) |
+| `REDIS_ENABLED` | No | Set `false` to disable caching even with REDIS_URL |
 | `SERPAPI_KEY` | No | Enables Google Jobs ingestion |
 | `ADMIN_API_KEY` | No | Protects admin/ingest endpoint |
 | `API_BASE_URL` | No | Public API URL (for Swagger server list) |

@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { runJobIngestionPipeline } from '../services/aggregationService.js';
 import { deleteOldJobs } from '../services/deduplicateService.js';
 import { config } from '../config/index.js';
+import { cacheDel } from '../utils/cache.js';
 
 /**
  * Job Scheduler
@@ -39,6 +40,8 @@ export const startScheduler = () => {
       console.log(`[${new Date().toISOString()}] 🔄 Scheduled job ingestion triggered`);
       // Fetch jobs posted in last 3 days to maximize new records
       await runJobIngestionPipeline({ timePeriod: '3days' });
+      // Invalidate job caches so next request gets fresh data
+      cacheDel('jobs:*');
     });
 
     // Weekly cleanup: Sunday at 2 AM (for Atlas free tier storage management)
@@ -48,6 +51,7 @@ export const startScheduler = () => {
       try {
         const result = await deleteOldJobs(20);
         console.log(`✓ Cleanup completed: Deleted ${result.deletedCount} jobs, freed ${result.freedMB}MB`);
+        cacheDel('jobs:*');
       } catch (error) {
         console.error(`✗ Cleanup error: ${error.message}`);
       }

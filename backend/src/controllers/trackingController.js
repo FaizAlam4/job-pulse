@@ -7,6 +7,29 @@
 import Tracking from '../models/Tracking.js';
 import Job from '../models/Job.js';
 import mongoose from 'mongoose';
+import { cacheGet, cacheSet, cacheDel, buildCacheKey, TTL } from '../utils/cache.js';
+
+/**
+ * Invalidate all cache keys for a user's tracking + insights data.
+ * Called after any tracking mutation (create, update, delete).
+ *
+ * Why pattern-based delete?
+ * A user's data is spread across multiple cache keys:
+ *   tracking:list:USER_ID:*    (list with different filters/pages)
+ *   tracking:analytics:USER_ID
+ *   insights:overview:USER_ID
+ *   insights:trends:USER_ID:30
+ *   insights:skills:USER_ID
+ *   ...etc
+ *
+ * After a mutation we nuke all of them so the next GET fetches fresh data.
+ */
+async function invalidateUserCache(userId) {
+  await Promise.all([
+    cacheDel(`tracking:*${userId}*`),
+    cacheDel(`insights:*${userId}*`),
+  ]);
+}
 
 /**
  * Track a new job (add to tracking)
@@ -80,6 +103,9 @@ export const trackJob = async (request, reply) => {
 
     await tracking.save();
 
+    // Invalidate user's tracking/insights cache
+    invalidateUserCache(userId);
+
     return reply.status(201).send({
       success: true,
       message: 'Job tracked successfully',
@@ -115,6 +141,11 @@ export const getTrackedJobs = async (request, reply) => {
       limit = 1000, // Default high limit for backward compatibility
     } = request.query;
 
+    // ── Cache check (user-scoped) ──
+    const cacheKey = buildCacheKey(`tracking:list:${userId}`, { status, sortBy, order, page, limit });
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
+
     const query = { userId };
     if (status) {
       query.status = status;
@@ -142,7 +173,7 @@ export const getTrackedJobs = async (request, reply) => {
     // Calculate pagination metadata
     const totalPages = Math.ceil(totalCount / limitNum);
 
-    return reply.send({
+    const response = {
       success: true,
       count: applications.length,
       data: applications,
@@ -154,7 +185,10 @@ export const getTrackedJobs = async (request, reply) => {
         hasNextPage: pageNum < totalPages,
         hasPrevPage: pageNum > 1,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.TRACKING);
+    return reply.send(response);
 
   } catch (error) {
     console.error('Error fetching tracked jobs:', error);
@@ -252,6 +286,9 @@ export const updateTrackedJob = async (request, reply) => {
 
     await tracking.save();
 
+    // Invalidate user's tracking/insights cache
+    invalidateUserCache(userId);
+
     return reply.send({
       success: true,
       message: 'Tracking updated successfully',
@@ -302,6 +339,7 @@ export const addInterview = async (request, reply) => {
     });
 
     await tracking.save();
+    invalidateUserCache(userId);
 
     return reply.send({
       success: true,
@@ -353,6 +391,7 @@ export const addContact = async (request, reply) => {
     });
 
     await tracking.save();
+    invalidateUserCache(userId);
 
     return reply.send({
       success: true,
@@ -387,6 +426,8 @@ export const deleteTrackedJob = async (request, reply) => {
       });
     }
 
+    invalidateUserCache(userId);
+
     return reply.send({
       success: true,
       message: 'Tracking deleted successfully',
@@ -409,6 +450,11 @@ export const deleteTrackedJob = async (request, reply) => {
 export const getTrackingAnalytics = async (request, reply) => {
   try {
     const userId = request.user.userId;
+
+    // ── Cache check ──
+    const cacheKey = `tracking:analytics:${userId}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return reply.send(cached);
 
     const applications = await Tracking.find({ userId });
 
@@ -492,7 +538,7 @@ export const getTrackingAnalytics = async (request, reply) => {
       }
     });
 
-    return reply.send({
+    const response = {
       success: true,
       data: {
         total: applications.length,
@@ -505,7 +551,10 @@ export const getTrackingAnalytics = async (request, reply) => {
         recentApplications,
         avgStageTimes,
       },
-    });
+    };
+
+    cacheSet(cacheKey, response, TTL.TRACKING);
+    return reply.send(response);
 
   } catch (error) {
     console.error('Error fetching analytics:', error);

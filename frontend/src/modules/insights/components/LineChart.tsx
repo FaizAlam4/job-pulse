@@ -5,11 +5,12 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface LineChartProps {
   data: number[];
+  labels?: string[];
   height?: number;
   color?: string;
   showDots?: boolean;
@@ -19,12 +20,15 @@ interface LineChartProps {
 
 export const LineChart: React.FC<LineChartProps> = ({
   data,
+  labels,
   height = 80,
   color = '#3B82F6',
   showDots = true,
   fillGradient = true,
   className = '',
 }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   if (data.length === 0) return null;
 
   const width = 100; // percentage width
@@ -51,7 +55,7 @@ export const LineChart: React.FC<LineChartProps> = ({
   const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <div className={`w-full ${className}`} style={{ height }}>
+    <div className={`w-full relative ${className}`} style={{ height: height + 40, paddingTop: 32 }}>
       <svg width="100%" height={height} className="overflow-visible">
         {fillGradient && (
           <defs>
@@ -89,18 +93,49 @@ export const LineChart: React.FC<LineChartProps> = ({
         {/* Dots */}
         {showDots &&
           points.map((point, i) => (
-            <motion.circle
+            <g
               key={i}
-              cx={point.x}
-              cy={point.y}
-              r="3"
-              fill={color}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.8 + i * 0.05 }}
-            />
+              onMouseEnter={() => setHoveredIndex(i)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              style={{ cursor: 'pointer' }}
+            >
+              {/* Larger invisible hit area */}
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="10"
+                fill="transparent"
+              />
+              <motion.circle
+                cx={point.x}
+                cy={point.y}
+                r={hoveredIndex === i ? 5 : 3}
+                fill={color}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.8 + i * 0.05 }}
+              />
+            </g>
           ))}
       </svg>
+
+      {/* HTML Tooltip */}
+      {hoveredIndex !== null && (
+        <div
+          className="absolute pointer-events-none z-10"
+          style={{
+            left: points[hoveredIndex].x,
+            top: points[hoveredIndex].y + 32 - 44,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <div className="bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap">
+            {labels?.[hoveredIndex]
+              ? `${labels[hoveredIndex]}: ${points[hoveredIndex].value}`
+              : points[hoveredIndex].value}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -318,7 +318,8 @@ export default function InsightsPage() {
                     </div>
                   </div>
                   <LineChart
-                    data={trends.cumulative.map((d) => d.cumulative || 0)}
+                    data={trends.daily.map((d) => d.applications || 0)}
+                    labels={trends.daily.map((d) => d.date || '')}
                     height={150}
                     color="#3B82F6"
                   />
@@ -332,7 +333,7 @@ export default function InsightsPage() {
               {/* Goals & Streaks + Sources */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Goals */}
-                {goals && (
+                {goals && goals.goals && goals.goals.weeklyApplications && (
                   <motion.div
                     className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200 dark:border-slate-700 shadow-sm"
                     initial={{ opacity: 0, y: 20 }}
@@ -350,12 +351,14 @@ export default function InsightsPage() {
                         target={goals.goals.weeklyApplications.target}
                         color="blue"
                       />
+                      {goals.goals.weeklyApplied && (
                       <GoalProgress
                         label={goals.goals.weeklyApplied.label}
                         current={goals.goals.weeklyApplied.current}
                         target={goals.goals.weeklyApplied.target}
                         color="green"
                       />
+                      )}
                     </div>
                     
                     {/* Streaks */}
@@ -373,11 +376,11 @@ export default function InsightsPage() {
                           </div>
                         </div>
                         <span className="text-3xl font-bold text-orange-500">
-                          {goals.streaks.current}
+                          {goals.streaks?.current ?? 0}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        Best streak: {goals.streaks.longest} days
+                        Best streak: {goals.streaks?.longest ?? 0} days
                       </p>
                     </div>
                   </motion.div>

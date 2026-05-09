@@ -4,6 +4,21 @@
 # ──────────────────────────────────────────────────────────────────────────────
 
 services:
+  # ── Redis (optional — caching layer) ────────────────────────────────────────
+  # Starts by default. Set REDIS_ENABLED=false in .env to disable caching.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: redis-cli ping | grep -q PONG
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   # ── MongoDB (optional — only starts with: docker compose --profile local-db up)
   # Use this if you don't have MongoDB Atlas or want a fully local setup
   mongo:
@@ -26,6 +41,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -34,6 +52,7 @@ services:
       - SERPAPI_KEY=${SERPAPI_KEY:-}
       - ADMIN_API_KEY=${ADMIN_API_KEY:-}
       - API_BASE_URL=${API_BASE_URL:-}
+      - REDIS_URL=redis://redis:6379
     healthcheck:
       test: wget -qO- http://127.0.0.1:3000/health || exit 1
       interval: 10s
@@ -58,3 +77,4 @@ services:
 
 volumes:
   mongo_data:
+  redis_data:

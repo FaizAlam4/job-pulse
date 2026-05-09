@@ -32,7 +32,7 @@ export default async function insightsRoutes(fastify) {
               type: 'object',
               properties: {
                 totalApplications: { type: 'integer' },
-                statusBreakdown: { type: 'object' },
+                statusBreakdown: { type: 'object', additionalProperties: { type: 'integer' } },
                 responseRate: { type: 'number' },
                 avgTimeToResponse: { type: 'integer', nullable: true },
                 thisWeekApplications: { type: 'integer' },
@@ -48,7 +48,7 @@ export default async function insightsRoutes(fastify) {
                     },
                   },
                 },
-                priorityDistribution: { type: 'object' },
+                priorityDistribution: { type: 'object', additionalProperties: { type: 'integer' } },
               },
             },
           },
@@ -78,8 +78,8 @@ export default async function insightsRoutes(fastify) {
             data: {
               type: 'object',
               properties: {
-                daily: { type: 'array', items: { type: 'object' } },
-                cumulative: { type: 'array', items: { type: 'object' } },
+                daily: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                cumulative: { type: 'array', items: { type: 'object', additionalProperties: true } },
                 period: { type: 'integer' },
               },
             },
@@ -152,11 +152,11 @@ export default async function insightsRoutes(fastify) {
                 categories: {
                   type: 'object',
                   properties: {
-                    languages: { type: 'array', items: { type: 'object' } },
-                    frameworks: { type: 'array', items: { type: 'object' } },
-                    tools: { type: 'array', items: { type: 'object' } },
-                    soft: { type: 'array', items: { type: 'object' } },
-                    other: { type: 'array', items: { type: 'object' } },
+                    languages: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                    frameworks: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                    tools: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                    soft: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                    other: { type: 'array', items: { type: 'object', additionalProperties: true } },
                   },
                 },
                 totalUniqueSkills: { type: 'integer' },
@@ -183,7 +183,7 @@ export default async function insightsRoutes(fastify) {
             data: {
               type: 'object',
               properties: {
-                goals: { type: 'object' },
+                goals: { type: 'object', additionalProperties: true },
                 streaks: {
                   type: 'object',
                   properties: {

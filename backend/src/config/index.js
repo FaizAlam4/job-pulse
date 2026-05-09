@@ -37,6 +37,10 @@ export const config = {
   searchQueries: (process.env.SEARCH_QUERIES || 'software engineer,software developer,backend developer,full stack developer,sde').split(',').map(q => q.trim()),
   // Jobs per query (total = queries × jobsPerQuery)
   maxJobsPerQuery: parseInt(process.env.MAX_JOBS_PER_QUERY) || 20,
+
+  // Redis (optional — set REDIS_URL to enable caching)
+  redisUrl: process.env.REDIS_URL || '',
+  redisEnabled: process.env.REDIS_ENABLED !== 'false' && !!process.env.REDIS_URL,
 };
 
 export default config;
