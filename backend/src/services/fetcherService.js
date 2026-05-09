@@ -194,7 +194,9 @@ export const fetchFromGoogleJobs = async (query = 'backend developer', options =
             postedAt: new Date(),
             source: 'google-jobs',
             externalId: job.job_id,
-            sourceUrl: job.apply_link || job.share_link || job.link,
+            sourceUrl: (job.apply_options && job.apply_options.length > 0 && job.apply_options[0].link)
+              || job.share_link
+              || job.link,
             // Additional metadata from detected_extensions
             salary: ext.salary || null,
             scheduleType: ext.schedule_type || null,
