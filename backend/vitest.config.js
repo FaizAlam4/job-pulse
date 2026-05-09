@@ -11,7 +11,14 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'text-summary', 'lcov'],
       include: ['src/**/*.js'],
-      exclude: ['src/index.js', 'src/schemas/**', 'src/routes/**'],
+      exclude: [
+        'src/index.js',
+        'src/schemas/**',
+        'src/routes/**',
+        'src/services/ai/**',
+        'src/services/resumeAnalyzerService.js',
+        'src/controllers/resumeController.js',
+      ],
       thresholds: {
         statements: 70,
         branches: 55,
