@@ -219,17 +219,6 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
-        {showSkeleton && !hasFetchedJobs && (
-          <motion.div
-            className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-100"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="font-medium">Waking up the backend</p>
-            <p className="text-sm opacity-90">The first load can take a bit longer after inactivity. If needed, use the retry button instead of refreshing the whole app.</p>
-          </motion.div>
-        )}
-
         {/* Error State with Animation */}
         {error && (
           <motion.div
