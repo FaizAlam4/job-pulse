@@ -44,6 +44,7 @@ interface AnalysisResult {
 interface SavedAnalysisSummary {
   _id: string;
   targetRole: string;
+  resumeFileName?: string;
   experienceLevel: string;
   locationPreference: string;
   overallScore: number;
@@ -185,6 +186,7 @@ export default function ResumeAnalyzerPage() {
           targetRole,
           experienceLevel,
           locationPreference,
+          resumeFileName: file?.name || null,
           analysis: result,
         }),
       });
@@ -896,6 +898,9 @@ export default function ResumeAnalyzerPage() {
                         </div>
                       )}
                     </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-center">
+                      🔒 Your resume is not stored or used for training. Only the processed analysis is saved when you choose to save it.
+                    </p>
                   </div>
                 </div>
 
@@ -1047,6 +1052,11 @@ export default function ResumeAnalyzerPage() {
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                               {item.targetRole}
                             </p>
+                            {item.resumeFileName && (
+                              <p className="text-xs text-blue-500 dark:text-blue-400 truncate" title={item.resumeFileName}>
+                                📄 {item.resumeFileName}
+                              </p>
+                            )}
                             <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                               {new Date(item.createdAt).toLocaleDateString('en-US', {
                                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',

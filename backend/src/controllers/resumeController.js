@@ -7,6 +7,7 @@
 
 import { analyzeResume, getFeatureStatus } from '../services/resumeAnalyzerService.js';
 import ResumeAnalysis from '../models/ResumeAnalysis.js';
+import Job from '../models/Job.js';
 
 /**
  * POST /resume/analyze
@@ -121,7 +122,7 @@ export default { analyze, status };
 export const saveAnalysis = async (request, reply) => {
   try {
     const userId = request.user.userId;
-    const { targetRole, experienceLevel, locationPreference, analysis } = request.body;
+    const { targetRole, experienceLevel, locationPreference, analysis, resumeFileName } = request.body;
 
     if (!analysis || !targetRole) {
       return reply.status(400).send({ success: false, error: 'Missing analysis data' });
@@ -137,13 +138,18 @@ export const saveAnalysis = async (request, reply) => {
     const saved = await ResumeAnalysis.create({
       userId,
       targetRole,
+      resumeFileName: resumeFileName || null,
       experienceLevel,
       locationPreference,
       overallScore: analysis.overallScore,
       summary: analysis.summary,
       extractedSkills: analysis.extractedSkills,
       fixes: analysis.fixes,
-      matchedJobs: analysis.matchedJobs,
+      matchedJobs: (analysis.matchedJobs || []).map(j => ({
+        jobId: j.jobId,
+        matchScore: j.matchScore,
+        reason: j.reason,
+      })),
       provider: analysis.provider,
       modelUsed: analysis.modelUsed,
       modelTier: analysis.modelTier,
@@ -167,7 +173,7 @@ export const getHistory = async (request, reply) => {
     const userId = request.user.userId;
     const analyses = await ResumeAnalysis.find({ userId })
       .sort({ createdAt: -1 })
-      .select('targetRole experienceLevel locationPreference overallScore summary createdAt')
+      .select('targetRole resumeFileName experienceLevel locationPreference overallScore summary createdAt')
       .limit(20)
       .lean();
 
@@ -190,6 +196,29 @@ export const getAnalysisById = async (request, reply) => {
 
     if (!analysis) {
       return reply.status(404).send({ success: false, error: 'Analysis not found' });
+    }
+
+    // Populate matched jobs with current data from Jobs collection
+    if (analysis.matchedJobs && analysis.matchedJobs.length > 0) {
+      const jobIds = analysis.matchedJobs.map(m => m.jobId).filter(Boolean);
+      const existingJobs = await Job.find({ _id: { $in: jobIds } })
+        .select('title company location')
+        .lean();
+      const jobMap = new Map(existingJobs.map(j => [j._id.toString(), j]));
+
+      analysis.matchedJobs = analysis.matchedJobs
+        .map(m => {
+          const job = jobMap.get(m.jobId);
+          if (!job) return null; // Job no longer exists
+          return {
+            jobId: m.jobId,
+            title: job.title,
+            company: job.company,
+            matchScore: m.matchScore,
+            reason: m.reason,
+          };
+        })
+        .filter(Boolean);
     }
 
     return reply.send({ success: true, data: analysis });

@@ -12,6 +12,10 @@ const resumeAnalysisSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    resumeFileName: {
+      type: String,
+      default: null,
+    },
     experienceLevel: {
       type: String,
       required: true,
@@ -37,8 +41,6 @@ const resumeAnalysisSchema = new mongoose.Schema(
     matchedJobs: [
       {
         jobId: String,
-        title: String,
-        company: String,
         matchScore: Number,
         reason: String,
       },
