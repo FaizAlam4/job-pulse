@@ -1,5 +1,7 @@
 # Job Pulse
 
+[![CI](https://github.com/FaizAlam4/job-pulse/actions/workflows/ci.yml/badge.svg)](https://github.com/FaizAlam4/job-pulse/actions/workflows/ci.yml)
+
 A job aggregation platform that fetches listings from multiple sources (Google Jobs via SerpAPI, Remotive), deduplicates them, ranks by relevance, and provides a personal application tracker with analytics — all behind a documented REST API.
 
 **Stack:** Next.js 15 · Fastify · MongoDB · Redis · Docker · Swagger/OpenAPI

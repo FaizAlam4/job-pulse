@@ -12,6 +12,12 @@ export default defineConfig({
       reporter: ['text', 'text-summary', 'lcov'],
       include: ['src/**/*.js'],
       exclude: ['src/index.js', 'src/schemas/**', 'src/routes/**'],
+      thresholds: {
+        statements: 70,
+        branches: 55,
+        functions: 75,
+        lines: 70,
+      },
     },
     setupFiles: ['./tests/setup.js'],
   },
