@@ -159,6 +159,32 @@ Health check reports cache status: `GET /health` → `{ cache: "connected" | "di
 
 ---
 
+## Testing
+
+Backend test suite using **Vitest** + **mongodb-memory-server** — no external services needed.
+
+```bash
+cd backend
+
+npm test              # run all tests
+npm run test:watch    # watch mode
+npm run test:coverage # coverage report
+```
+
+**183 tests** across 22 files — **81% statement coverage, 87% function coverage.**
+
+| Layer | Files | Tests |
+|-------|-------|-------|
+| Unit | scoring, cache, config, apiKeyAuth, authMiddleware, database | 55 |
+| Models | Job, User, Tracking, Notification | 29 |
+| Services | scoring, dedup, notification, aggregation, fetcher | 31 |
+| Controllers | auth, job, tracking, insights, notification | 62 |
+| Schedulers | jobScheduler, notificationScheduler | 6 |
+
+All DB-backed tests use an in-memory MongoDB instance and clean up after each test.
+
+---
+
 ## Environment Variables
 
 | Variable | Required | Description |

@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "job",
@@ -34,7 +36,10 @@
     "pino-pretty": "^10.3.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "@vitest/coverage-v8": "^1.6.0",
+    "mongodb-memory-server": "^11.1.0",
+    "nodemon": "^3.0.2",
+    "vitest": "^1.6.0"
   },
   "nodemonConfig": {
     "ignore": [
