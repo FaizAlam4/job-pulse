@@ -174,8 +174,7 @@ const userSchema = new mongoose.Schema(
 );
 
 // Indexes for performance
-userSchema.index({ email: 1 });
-userSchema.index({ createdAt: -1 });
+userSchema.index({ createdAt: -1 }); // email index is already created by unique:true in schema
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
