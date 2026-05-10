@@ -41,19 +41,19 @@ const MODEL_HIERARCHY = [
     id: 'llama-3.3-70b-versatile',
     name: 'Llama 3.3 70B',
     tier: 'premium',
-    maxTokens: 1024, // Reduced from 2048 - JSON response needs ~500-800
+    maxTokens: 1500, // Increased: longer resume input needs more output budget
   },
   {
     id: 'meta-llama/llama-4-scout-17b-16e-instruct',
     name: 'Llama 4 Scout 17B',
     tier: 'standard',
-    maxTokens: 1024,
+    maxTokens: 1500,
   },
   {
     id: 'llama-3.1-8b-instant',
     name: 'Llama 3.1 8B',
     tier: 'fallback',
-    maxTokens: 1024,
+    maxTokens: 1500,
   },
 ];
 
@@ -87,14 +87,12 @@ class GroqProvider extends AIProvider {
    */
   async extractPdfText(pdfBuffer) {
     try {
-      // Lazy load pdf-parse
-      if (!this.PdfParseClass) {
+      // Lazy load pdf-parse (exports a default function, not a class)
+      if (!this._pdfParse) {
         const pdfParseModule = await import('pdf-parse');
-        this.PdfParseClass = pdfParseModule.PDFParse;
+        this._pdfParse = pdfParseModule.default || pdfParseModule;
       }
-      const parser = new this.PdfParseClass({ data: pdfBuffer });
-      const result = await parser.getText();
-      await parser.destroy();
+      const result = await this._pdfParse(pdfBuffer);
       return result.text;
     } catch (error) {
       console.error('PDF parsing error:', error.message);
@@ -103,17 +101,17 @@ class GroqProvider extends AIProvider {
   }
 
   /**
-   * Build the analysis prompt - OPTIMIZED for minimal tokens
+   * Build the analysis prompt
    * 
-   * Token budget breakdown (target ~1500 tokens input):
+   * Token budget breakdown:
    * - System prompt: ~30 tokens
-   * - Resume text: ~800-1000 tokens (truncated to 2500 chars)
+   * - Resume text: ~1500-1700 tokens (up to 6000 chars to include all sections)
    * - Job list: ~150 tokens (10 jobs max)
-   * - Prompt structure: ~100 tokens
-   * - Output: ~500-800 tokens
+   * - Prompt structure: ~150 tokens
+   * - Output: ~600-900 tokens
    * 
-   * Total per request: ~2000-2500 tokens
-   * At 14,400 req/day limit: can handle 200-300 analyses/day comfortably
+   * Total per request: ~2500-3000 tokens
+   * At 14,400 req/day limit: can handle 150-200 analyses/day comfortably
    */
   buildPrompt(request, resumeText) {
     const { targetRole, experienceLevel, locationPreference, jobs } = request;
@@ -123,10 +121,9 @@ class GroqProvider extends AIProvider {
       `${i + 1}.${j.title}@${j.company}`
     ).join('|');
 
-    // Aggressive truncation - 2500 chars is enough for key resume sections
-    // This saves ~500 tokens vs 4000 chars
-    const truncatedResume = resumeText.length > 2500 
-      ? resumeText.slice(0, 2500) + '...'
+    // 6000 chars ensures all resume sections (including Projects & Skills at the bottom) are captured
+    const truncatedResume = resumeText.length > 6000 
+      ? resumeText.slice(0, 6000) + '...'
       : resumeText;
 
     // Ultra-compact prompt - every word counts
@@ -149,7 +146,8 @@ ATS SCORE RULES (score resume-to-role fit ONLY, not general resume quality):
 - 94-100: Near-perfect match, tailor-made resume for this exact role
 Use EXACT numbers — avoid rounding to 70/75/80/85/90. Reflect actual quality gap: a slightly weaker resume must score noticeably lower (e.g. 79 vs 84, not both 85).
 
-JSON only:{overallScore:0-100,fixes:[{section,issue,suggestion,priority}],matchedJobs:[{jobIndex,matchScore,reason}],extractedSkills:[],summary}
+JSON only:{overallScore:0-100,fixes:[{section,issue,suggestion,priority}],matchedJobs:[{jobIndex,matchScore,reason}],extractedSkills:["skill1","skill2",...],summary:"..."}
+extractedSkills MUST list ALL technical skills, tools, languages, and frameworks found in the resume.
 Max 4 fixes(high-impact).matchedJobs only if resume genuinely fits the job.Be concise.`;
   }
 
