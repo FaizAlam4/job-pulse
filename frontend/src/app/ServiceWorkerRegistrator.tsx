@@ -9,6 +9,19 @@ import { useEffect } from 'react';
  */
 export const ServiceWorkerRegistrator = () => {
   useEffect(() => {
+    // Only register in production — the pre-built SW causes NetworkOnly fetch
+    // failures on every navigation in dev (no matching runtime cache rule for
+    // localhost navigation requests).
+    if (process.env.NODE_ENV !== 'production') {
+      // Unregister any previously-installed SW so it stops intercepting requests
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(reg => reg.unregister());
+        });
+      }
+      return;
+    }
+
     // Check for service worker support
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       console.warn('⚠️  [PWA] Service Worker not supported in this browser');

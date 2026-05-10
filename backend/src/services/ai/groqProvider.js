@@ -87,12 +87,14 @@ class GroqProvider extends AIProvider {
    */
   async extractPdfText(pdfBuffer) {
     try {
-      // Lazy load pdf-parse (exports a default function, not a class)
-      if (!this._pdfParse) {
+      // Lazy load pdf-parse — it exports PDFParse as a named class (ESM)
+      if (!this.PdfParseClass) {
         const pdfParseModule = await import('pdf-parse');
-        this._pdfParse = pdfParseModule.default || pdfParseModule;
+        this.PdfParseClass = pdfParseModule.PDFParse;
       }
-      const result = await this._pdfParse(pdfBuffer);
+      const parser = new this.PdfParseClass({ data: pdfBuffer });
+      const result = await parser.getText();
+      await parser.destroy();
       return result.text;
     } catch (error) {
       console.error('PDF parsing error:', error.message);
@@ -134,21 +136,41 @@ RESUME:
 ${truncatedResume}
 ${jobSection}
 
-ATS SCORE RULES (score resume-to-role fit ONLY, not general resume quality):
-- 0-15: Complete career mismatch (e.g. tech resume for doctor/lawyer role)
+STEP 1 — RESUME VALIDITY CHECK (do this FIRST before anything else):
+A valid resume MUST contain ALL THREE of:
+  1. Personal identity: candidate name and/or contact info (email/phone)
+  2. Work experience: job titles with company names and employment dates
+  3. Education OR Skills section belonging to a person
+
+Documents that are NOT resumes (even if technical): architecture docs, design docs, README files, reports, articles, code, invoices, certificates, legal docs, manuals.
+Presence of technical terms or skills alone does NOT make something a resume.
+
+If the text does NOT satisfy all three criteria above:
+→ Return ONLY: {"overallScore":0,"fixes":[],"extractedSkills":[],"matchedJobs":[],"summary":"Invalid document. This does not appear to be a resume — it looks like a ${targetRole.length > 0 ? 'technical document' : 'non-resume document'}. Please upload your actual resume PDF to get a proper ATS score and job matches."}
+Do NOT attempt scoring, fixing, or skill extraction for invalid documents.
+
+STEP 2 — ATS SCORE (only if valid resume; score resume-to-role fit ONLY):
+- 0-15: Complete career mismatch
 - 16-35: Wrong field, minimal transferable skills
 - 36-50: Same broad industry, weak role alignment
 - 51-64: Related role, missing key skills or experience level mismatch
 - 65-74: Decent match, some gaps in required skills or keywords
-- 75-81: Good match, minor gaps (e.g. 1-2 missing tools or slightly junior)
-- 82-87: Strong match, well-aligned skills+exp, small improvements possible
-- 88-93: Very strong, nearly all required skills present, experience fits
-- 94-100: Near-perfect match, tailor-made resume for this exact role
-Use EXACT numbers — avoid rounding to 70/75/80/85/90. Reflect actual quality gap: a slightly weaker resume must score noticeably lower (e.g. 79 vs 84, not both 85).
+- 75-81: Good match, minor gaps
+- 82-87: Strong match, well-aligned skills+exp
+- 88-93: Very strong, nearly all required skills present
+- 94-100: Near-perfect match for this exact role
+Use EXACT numbers — avoid rounding to 70/75/80/85/90.
+
+STEP 3 — FIXES RULES (only if valid resume):
+- FORBIDDEN suggestions:
+  * "categorize/organize your skills" — if labels like Languages/Frameworks/Databases already exist, skills ARE categorized.
+  * "add a summary/objective" — if a Summary or Profile section already exists, do not suggest adding one.
+  * "consider adding X if familiar" — NEVER suggest skills the person may not have.
+- Only report issues GENUINELY ABSENT from the resume text.
+- 0-3 real fixes is better than inventing ones.
 
 JSON only:{overallScore:0-100,fixes:[{section,issue,suggestion,priority}],matchedJobs:[{jobIndex,matchScore,reason}],extractedSkills:["skill1","skill2",...],summary:"..."}
-extractedSkills MUST list ALL technical skills, tools, languages, and frameworks found in the resume.
-Max 4 fixes(high-impact).matchedJobs only if resume genuinely fits the job.Be concise.`;
+extractedSkills: list ALL technical skills found. matchedJobs: only if resume genuinely fits. Be concise.`;
   }
 
   /**

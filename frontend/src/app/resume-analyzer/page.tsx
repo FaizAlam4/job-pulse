@@ -112,6 +112,7 @@ export default function ResumeAnalyzerPage() {
   
   // Form state
   const [file, setFile] = useState<File | null>(null);
+  const [restoredFileName, setRestoredFileName] = useState<string | null>(null);
   const [targetRole, setTargetRole] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
   const [locationPreference, setLocationPreference] = useState('');
@@ -142,6 +143,7 @@ export default function ResumeAnalyzerPage() {
         if (parsed.experienceLevel) setExperienceLevel(parsed.experienceLevel);
         if (parsed.locationPreference) setLocationPreference(parsed.locationPreference);
         if (parsed.savedId) setSavedId(parsed.savedId);
+        if (parsed.resumeFileName) setRestoredFileName(parsed.resumeFileName);
       }
     } catch {
       // ignore parse errors
@@ -186,7 +188,7 @@ export default function ResumeAnalyzerPage() {
           targetRole,
           experienceLevel,
           locationPreference,
-          resumeFileName: file?.name || null,
+          resumeFileName: file?.name || restoredFileName || null,
           analysis: result,
         }),
       });
@@ -338,12 +340,14 @@ export default function ResumeAnalyzerPage() {
       }
 
       setResult(data.data);
+      setRestoredFileName(file.name);
       // Persist to sessionStorage so navigating away won't lose it
       sessionStorage.setItem('resumeAnalysis', JSON.stringify({
         result: data.data,
         targetRole,
         experienceLevel,
         locationPreference,
+        resumeFileName: file.name,
       }));
     } catch (err: any) {
       setError(err.message || 'Failed to analyze resume. Please try again.');
@@ -355,6 +359,7 @@ export default function ResumeAnalyzerPage() {
   // Reset form
   const handleReset = () => {
     setFile(null);
+    setRestoredFileName(null);
     setTargetRole('');
     setExperienceLevel('');
     setLocationPreference('');
@@ -380,6 +385,7 @@ export default function ResumeAnalyzerPage() {
   };
 
   const getScoreLabel = (score: number) => {
+    if (score === 0) return 'Invalid';
     if (score >= 80) return 'Excellent';
     if (score >= 60) return 'Good';
     if (score >= 40) return 'Needs Work';
@@ -708,6 +714,16 @@ export default function ResumeAnalyzerPage() {
                         </motion.div>
                       );
                     })}
+                  </div>
+                ) : displayResult.overallScore === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-200 dark:shadow-red-900/30">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-base font-semibold text-gray-900 dark:text-white">Invalid or unrecognized document</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">This doesn&apos;t look like a resume. Please upload a proper resume PDF to get shortlisted for jobs.</p>
                   </div>
                 ) : (
                   <div className="text-center py-10">
