@@ -142,7 +142,10 @@ A valid resume MUST contain ALL THREE of:
   2. Work experience: job titles with company names and employment dates
   3. Education OR Skills section belonging to a person
 
-Documents that are NOT resumes (even if technical): architecture docs, design docs, README files, reports, articles, code, invoices, certificates, legal docs, manuals.
+IMPORTANT: A resume from ANY field or profession (doctor, physiotherapist, lawyer, artist, etc.) is a VALID resume. Do NOT reject based on field mismatch with the target role — that is handled by the ATS score.
+Only reject documents that lack resume STRUCTURE entirely.
+
+Documents that are NOT resumes (even if technical): architecture docs, design docs, README files, reports, articles, code, invoices, certificates, legal docs, manuals, spreadsheets, presentations.
 Presence of technical terms or skills alone does NOT make something a resume.
 
 If the text does NOT satisfy all three criteria above:
@@ -310,7 +313,7 @@ extractedSkills: list ALL technical skills found. matchedJobs: only if resume ge
         }
 
         return {
-          overallScore: parsed.overallScore || 50,
+          overallScore: typeof parsed.overallScore === 'number' ? parsed.overallScore : 50,
           fixes: parsed.fixes || [],
           matchedJobs,
           extractedSkills: parsed.extractedSkills || [],

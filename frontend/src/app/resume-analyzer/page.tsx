@@ -716,14 +716,69 @@ export default function ResumeAnalyzerPage() {
                     })}
                   </div>
                 ) : displayResult.overallScore === 0 ? (
+                  <div className="p-4 space-y-3">
+                    <div className="rounded-xl border border-red-200 dark:border-red-800/50 overflow-hidden bg-white dark:bg-slate-800 shadow-sm">
+                      <div className="flex items-center justify-between px-5 py-3 border-b border-red-100 dark:border-red-900/40">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+                            Invalid Document
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 dark:text-red-400 uppercase tracking-wide">
+                          High
+                        </span>
+                      </div>
+                      <div className="px-5 py-3">
+                        <div className="flex items-start gap-2.5">
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mt-0.5">
+                            <svg className="w-3 h-3 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 dark:text-red-400">Issue</span>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mt-0.5">
+                              This does not appear to be a resume. A valid resume must include your name/contact info, work experience with company names and dates, and an education or skills section.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mx-5 mb-4 p-3.5 bg-green-50 dark:bg-emerald-500/10 rounded-lg border border-green-200 dark:border-emerald-500/30">
+                        <div className="flex items-start gap-2.5">
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-0.5">
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-green-600 dark:text-emerald-400">Fix</span>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mt-0.5">
+                              Upload your actual resume PDF — include your full name, contact details, work experience, skills, and education. This ensures ATS systems and recruiters can shortlist you properly.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : displayResult.overallScore < 16 ? (
                   <div className="text-center py-10">
-                    <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-200 dark:shadow-red-900/30">
+                    <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-200 dark:shadow-orange-900/30">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                      </svg>
+                    </div>
+                    <p className="text-base font-semibold text-gray-900 dark:text-white">Resume is for a different field</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">Your resume appears to be from a different industry or profession. Try changing the target role to match your actual background for a more accurate analysis.</p>
+                  </div>
+                ) : displayResult.overallScore < 40 ? (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-200 dark:shadow-orange-900/30">
                       <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                       </svg>
                     </div>
-                    <p className="text-base font-semibold text-gray-900 dark:text-white">Invalid or unrecognized document</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">This doesn&apos;t look like a resume. Please upload a proper resume PDF to get shortlisted for jobs.</p>
+                    <p className="text-base font-semibold text-gray-900 dark:text-white">Resume needs significant work</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">Ensure your resume includes a clear Summary, Skills, Work Experience with dates, and Education section to improve shortlisting chances.</p>
                   </div>
                 ) : (
                   <div className="text-center py-10">
