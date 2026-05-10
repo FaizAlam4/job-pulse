@@ -130,15 +130,27 @@ class GroqProvider extends AIProvider {
       : resumeText;
 
     // Ultra-compact prompt - every word counts
-    return `Role:${targetRole}|Exp:${experienceLevel}|Loc:${locationPreference}
+    const jobSection = jobList ? `\nJOBS:${jobList}` : '';
+    return `TargetRole:${targetRole}|Exp:${experienceLevel}|Loc:${locationPreference}
 
 RESUME:
 ${truncatedResume}
+${jobSection}
 
-JOBS:${jobList}
+ATS SCORE RULES (score resume-to-role fit ONLY, not general resume quality):
+- 0-15: Complete career mismatch (e.g. tech resume for doctor/lawyer role)
+- 16-35: Wrong field, minimal transferable skills
+- 36-50: Same broad industry, weak role alignment
+- 51-64: Related role, missing key skills or experience level mismatch
+- 65-74: Decent match, some gaps in required skills or keywords
+- 75-81: Good match, minor gaps (e.g. 1-2 missing tools or slightly junior)
+- 82-87: Strong match, well-aligned skills+exp, small improvements possible
+- 88-93: Very strong, nearly all required skills present, experience fits
+- 94-100: Near-perfect match, tailor-made resume for this exact role
+Use EXACT numbers — avoid rounding to 70/75/80/85/90. Reflect actual quality gap: a slightly weaker resume must score noticeably lower (e.g. 79 vs 84, not both 85).
 
 JSON only:{overallScore:0-100,fixes:[{section,issue,suggestion,priority}],matchedJobs:[{jobIndex,matchScore,reason}],extractedSkills:[],summary}
-Max 4 fixes(high-impact),4 job matches.Be concise.`;
+Max 4 fixes(high-impact).matchedJobs only if resume genuinely fits the job.Be concise.`;
   }
 
   /**

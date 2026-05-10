@@ -63,11 +63,9 @@ const fetchTopJobs = async (targetRole, locationPreference) => {
     return searchTerms.some(term => titleLower.includes(term));
   });
   
-  // If no matches, return top jobs regardless
-  const result = filtered.length > 0 ? filtered : jobs;
-  
-  // Return top 20 for AI analysis
-  return result.slice(0, 20);
+  // Only return jobs relevant to the target role — do NOT fall back to unrelated jobs
+  // (returning mismatched jobs causes the AI to suggest them regardless of role fit)
+  return filtered.slice(0, 20);
 };
 
 /**
@@ -111,9 +109,7 @@ export const analyzeResume = async ({
   // Fetch relevant jobs
   const jobs = await fetchTopJobs(targetRole, locationPreference);
   
-  if (jobs.length === 0) {
-    throw new Error('No jobs available for matching. Please try again later.');
-  }
+  // jobs may be empty if no role-relevant jobs exist — that's fine, AI will still score the resume
   
   // Get AI provider and analyze
   const provider = getAIProvider();
