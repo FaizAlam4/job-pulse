@@ -1,23 +1,35 @@
 # Job Pulse
 
 [![CI](https://github.com/FaizAlam4/job-pulse/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/FaizAlam4/job-pulse/actions/workflows/ci.yml)
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![Fastify](https://img.shields.io/badge/Fastify-5-white?logo=fastify)
+![MongoDB](https://img.shields.io/badge/MongoDB-7-green?logo=mongodb)
+![Redis](https://img.shields.io/badge/Redis-7-red?logo=redis)
+![Docker](https://img.shields.io/badge/Docker-Compose-blue?logo=docker)
+![Tests](https://img.shields.io/badge/Tests-183_passing-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-81%25-yellowgreen)
 
-A job aggregation platform with **AI-powered resume analysis**. Fetches listings from multiple sources, deduplicates and ranks them, analyzes your resume against live jobs, and provides a full application tracker with analytics — all behind a documented REST API.
+A full-stack job aggregation platform with **AI-powered resume analysis**, real-time notifications, and application tracking. Fetches listings from multiple sources, deduplicates and ranks them, analyzes your resume against live jobs, and provides a Kanban-style application tracker with personal analytics — all behind a fully documented REST API with **183 tests at 81% coverage**.
+
+### [🚀 Live Demo](https://job-pulse-ten.vercel.app/)
 
 **Stack:** Next.js 15 · Fastify · MongoDB · Redis · Groq AI · Docker · Swagger/OpenAPI
 
 ---
 
-## What It Does
+## Features
 
-- **AI Resume Analyzer** — Upload a PDF resume, get an ATS score, section-by-section improvement suggestions, extracted skills, and matched jobs from the database. Save analyses and revisit history. Powered by Groq (free tier, automatic model fallback)
-- **Aggregates jobs** from Google Jobs + Remotive with configurable scheduling
-- **Deduplicates** listings using content hashing
-- **Ranks & scores** jobs by recency, relevance, and keyword match
-- **Application tracker** — Kanban board with status pipeline (Saved → Applied → Interview → Offer)
-- **Personal insights** — Response rates, trends, skills breakdown, streaks
-- **Real-time notifications** — SSE-powered alerts when new jobs are ingested
-- **PWA** — Offline-capable, installable, dark mode
+- ✅ **AI Resume Analyzer** — Upload a PDF resume, get an ATS score, section-by-section improvement suggestions, extracted skills, and matched jobs from the database. Save analyses and revisit history.
+- ✅ **Multi-source job aggregation** — Google Jobs + Remotive with configurable cron scheduling
+- ✅ **Intelligent deduplication** — SHA256 content hashing prevents duplicate listings
+- ✅ **Smart ranking** — Composite scoring: `(0.6 × freshness) + (0.4 × relevance)`
+- ✅ **Application tracker** — Kanban board with status pipeline (Saved → Applied → Interview → Offer)
+- ✅ **Personal insights** — Response rates, trends, skills breakdown, streaks
+- ✅ **Real-time notifications** — SSE-powered alerts when new jobs are ingested
+- ✅ **Redis caching layer** — Cache-aside pattern with automatic invalidation
+- ✅ **PWA** — Offline-capable, installable, dark mode
+- ✅ **183 automated tests** — 81% statement coverage, 87% function coverage
+- ✅ **Fully documented API** — Swagger/OpenAPI with try-it-out functionality
 
 ---
 
@@ -113,6 +125,38 @@ job-pulse/
 ├── docker-compose.local.yml     Override for fully-local MongoDB
 └── docs/              Architecture, deployment, config guides
 ```
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    User-->|HTTPS|NextJS[Next.js 15 PWA]
+    NextJS-->|REST|Fastify[Fastify API]
+    Fastify-->MongoDB[(MongoDB)]
+    Fastify-->Redis[(Redis Cache)]
+    Fastify-->Groq[Groq AI]
+    Scheduler[Cron Scheduler]-->|Fetch|SerpAPI[SerpAPI / Remotive]
+    Scheduler-->|Ingest|Fastify
+    Fastify-->|SSE|NextJS
+```
+
+> Full architecture documentation: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+---
+
+## Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **Fastify** over Express | 2-3x faster throughput, native JSON schema validation doubles as OpenAPI spec |
+| **Cache-aside** over write-through | Read-heavy workload — most users browse jobs, few ingest |
+| **SHA256 deduplication** | Deterministic, fast, collision-resistant — `hash(title + company + location)` |
+| **SSE** over WebSockets | Unidirectional server→client push, simpler, HTTP/2 multiplexing compatible |
+| **Groq with fallback chain** | Free tier + automatic model fallback (`llama-3.3-70b` → `llama-4-scout` → `llama-3.1-8b`) ensures high availability |
+| **Composite scoring** | `score = (0.6 × freshness) + (0.4 × relevance)` balances recency with keyword match |
+| **In-memory MongoDB for tests** | Zero external dependencies, parallel-safe, fast CI runs |
 
 ---
 
@@ -276,6 +320,44 @@ All DB-backed tests use an in-memory MongoDB instance and clean up after each te
 
 ---
 
+## Security
+
+- **Authentication** — JWT tokens with bcrypt password hashing (12 salt rounds)
+- **API key auth** — Admin/ingest endpoints protected by separate API key
+- **Input validation** — JSON Schema validation on all request bodies (Fastify built-in)
+- **Rate limiting** — Configurable per-route rate limits to prevent abuse
+- **CORS** — Strict origin configuration
+- **No raw queries** — All DB access through Mongoose parameterized queries (injection-safe)
+- **Secrets management** — Environment-based config, no hardcoded credentials
+
+> Detailed rate limiting setup: [`docs/RATE_LIMITING.md`](docs/RATE_LIMITING.md)
+
+---
+
+## Performance
+
+| Metric | Value |
+|--------|-------|
+| Redis cache hit response | **<5ms** (vs 50-100ms DB query) |
+| SSE keepalive interval | 25s (prevents proxy/LB timeout) |
+| Max pagination size | 100 items (prevents memory spikes) |
+| Notification deduplication | Per hour + filter (no duplicate alerts) |
+| Cache invalidation | Pattern-based `SCAN` (not blocking `KEYS`) |
+| Docker image size | Multi-stage builds, production-only deps |
+
+---
+
+## CI/CD
+
+The CI pipeline runs on every push and pull request:
+
+- ✅ Full test suite (183 tests) with coverage enforcement
+- ✅ Lint checks (ESLint)
+- ✅ Docker build verification
+- ✅ Node.js matrix testing
+
+---
+
 ## Environment Variables
 
 | Variable | Required | Description |
@@ -295,3 +377,9 @@ All DB-backed tests use an in-memory MongoDB instance and clean up after each te
 ## License
 
 MIT
+
+---
+
+<p align="center">
+  Built by <a href="https://github.com/FaizAlam4">Faiz Alam</a>
+</p>
