@@ -292,6 +292,14 @@ extractedSkills: list ALL technical skills found. matchedJobs: only if resume ge
           throw new Error('Failed to parse AI response. Please try again.');
         }
 
+        // Detect invalid document from summary even if LLM gave non-zero score
+        const summary = parsed.summary || 'Analysis complete.';
+        const isInvalidDocument = /invalid document|does not appear to be a resume|not a resume/i.test(summary);
+        if (isInvalidDocument && parsed.overallScore > 0) {
+          console.log(`[Groq] Forcing score to 0 — summary indicates invalid document but LLM returned score ${parsed.overallScore}`);
+          parsed.overallScore = 0;
+        }
+
         // Map job indices to actual job data
         const matchedJobs = (parsed.matchedJobs || []).map(match => {
           const job = jobs[match.jobIndex - 1];

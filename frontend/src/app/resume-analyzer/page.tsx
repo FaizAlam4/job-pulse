@@ -780,6 +780,16 @@ export default function ResumeAnalyzerPage() {
                     <p className="text-base font-semibold text-gray-900 dark:text-white">Resume needs significant work</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">Ensure your resume includes a clear Summary, Skills, Work Experience with dates, and Education section to improve shortlisting chances.</p>
                   </div>
+                ) : displayResult.summary && /invalid document|does not appear to be a resume|not a resume/i.test(displayResult.summary) ? (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-200 dark:shadow-red-900/30">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-base font-semibold text-gray-900 dark:text-white">Invalid Document</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">This file does not appear to be a resume. Please upload your actual resume PDF with your name, experience, skills, and education.</p>
+                  </div>
                 ) : (
                   <div className="text-center py-10">
                     <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-200 dark:shadow-green-900/30">
