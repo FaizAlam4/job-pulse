@@ -149,6 +149,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ onApplyFilters }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsExpanded((prev) => !prev)}
+            suppressHydrationWarning
             className="sm:hidden inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 rounded-lg"
           >
             {isExpanded ? 'Hide' : 'Show'}

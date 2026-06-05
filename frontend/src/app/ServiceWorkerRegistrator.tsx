@@ -102,7 +102,7 @@ export const ServiceWorkerRegistrator = () => {
           const cacheNames = await caches.keys();
           for (const cacheName of cacheNames) {
             if (!cacheName.includes('workbox') && !cacheName.includes('api-cache') && 
-                !cacheName.includes('google-fonts') && !cacheName.includes('static-assets') && 
+                !cacheName.includes('google-fonts') &&
                 !cacheName.includes('images') && !cacheName.includes('start-url') &&
                 !cacheName.includes('dev')) {
               console.log(`🗑️  [PWA] Deleting old cache: ${cacheName}`);
