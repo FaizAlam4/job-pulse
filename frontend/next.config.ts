@@ -6,6 +6,8 @@ const withPWAConfig = withPWA({
   dest: "public",
   register: false, // We handle registration manually in ServiceWorkerRegistrator
   skipWaiting: true,
+  clientsClaim: true, // New SW immediately takes control of all open tabs
+  cleanupOutdatedCaches: true, // Remove stale precache entries after new build deploys
   buildExcludes: [/manifest$/], // Don't generate manifest, use static one
   publicExcludes: ['!sw.js'], // Let next-pwa fully control sw.js generation
   runtimeCaching: [
@@ -42,17 +44,10 @@ const withPWAConfig = withPWA({
         },
       },
     },
-    {
-      urlPattern: /\/.*\.(js|css)$/i,
-      handler: "StaleWhileRevalidate",
-      options: {
-        cacheName: "static-assets",
-        expiration: {
-          maxEntries: 100,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        },
-      },
-    },
+    // NOTE: No runtime caching for *.js or *.css —
+    // Next.js chunks are content-hashed and handled by workbox precaching at install time.
+    // A StaleWhileRevalidate rule here causes OLD stale chunks to be served after new deployments,
+    // leading to "Cannot read properties of undefined" crashes on navigation.
     {
       urlPattern: /\/.*\.(png|jpg|jpeg|svg|gif|webp)$/i,
       handler: "CacheFirst",
