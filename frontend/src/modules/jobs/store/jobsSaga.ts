@@ -39,7 +39,7 @@ function* fetchJobsSaga(action: PayloadAction<JobFilters | undefined>) {
     const response: JobsResponse = yield call(jobsService.getJobs, filters);
     
     yield put(fetchJobsSuccess({
-      jobs: response.data,
+      jobs: response.data ?? [],
       pagination: response.pagination,
     }));
   } catch (error) {

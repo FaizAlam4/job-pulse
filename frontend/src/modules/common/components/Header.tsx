@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const dispatch = useAppDispatch();
 
   const navLinks = [
@@ -103,7 +103,10 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
             {/* Desktop: NotificationBell, Sign In/Logout, then Dark Mode Toggle */}
             <div className="hidden md:flex items-center space-x-2">
               <NotificationBell />
-              {isAuthenticated ? (
+              {authLoading ? (
+                // Render a placeholder during SSR/hydration to avoid mismatch
+                <div className="w-[74px] h-[36px]" suppressHydrationWarning />
+              ) : isAuthenticated ? (
                 <button
                   onClick={handleLogout}
                   className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
@@ -231,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({ children }) => {
             </div>
             
             {/* Auth button in mobile menu */}
-            {isAuthenticated ? (
+            {authLoading ? null : isAuthenticated ? (
               <button
                 onClick={() => {
                   handleLogout();

@@ -58,7 +58,7 @@ export const JobList: React.FC<JobListProps> = ({
   }
 
   // Jobs are already paginated from API, no need to slice
-  if (jobs.length === 0) {
+  if (!jobs || jobs.length === 0) {
     return <EmptyState message={emptyMessage} />;
   }
 

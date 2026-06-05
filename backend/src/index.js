@@ -52,9 +52,10 @@ const initializeServer = async () => {
   // Connect to MongoDB
   await connectDB();
 
-  // Register compression (Gzip/Brotli) — shrinks JSON payloads ~70%, saves Render bandwidth
-  await fastify.register(compress, { global: true });
-  console.log('✓ Response compression enabled (gzip/brotli)');
+  // Register compression (Gzip/Deflate) — shrinks JSON payloads ~70%, saves Render bandwidth
+  // Brotli excluded: @fastify/compress v6 + Fastify 4 produces empty body with br encoding
+  await fastify.register(compress, { global: true, encodings: ['gzip', 'deflate'] });
+  console.log('✓ Response compression enabled (gzip/deflate)');
 
   // Register CORS plugin (MUST BE BEFORE ROUTES)
   // Allows all origins (for demo/portfolio purposes)

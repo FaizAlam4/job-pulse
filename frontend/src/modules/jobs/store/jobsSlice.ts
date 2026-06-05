@@ -89,7 +89,7 @@ const jobsSlice = createSlice({
       state.isLoading = false;
       state.hasFetchedJobs = true;
       // Always replace jobs for pagination (not infinite scroll)
-      state.jobs = action.payload.jobs;
+      state.jobs = action.payload.jobs ?? [];
       state.pagination = action.payload.pagination;
     },
     fetchJobsFailure: (state, action: PayloadAction<string>) => {
