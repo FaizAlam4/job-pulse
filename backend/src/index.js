@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import compress from '@fastify/compress';
 import rateLimit from '@fastify/rate-limit';
 import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
@@ -50,6 +51,10 @@ const initializeServer = async () => {
 
   // Connect to MongoDB
   await connectDB();
+
+  // Register compression (Gzip/Brotli) — shrinks JSON payloads ~70%, saves Render bandwidth
+  await fastify.register(compress, { global: true });
+  console.log('✓ Response compression enabled (gzip/brotli)');
 
   // Register CORS plugin (MUST BE BEFORE ROUTES)
   // Allows all origins (for demo/portfolio purposes)

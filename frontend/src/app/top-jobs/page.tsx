@@ -29,7 +29,7 @@ export default function TopJobsPage() {
   useEffect(() => {
     if (!hasFetched.current) {
       hasFetched.current = true;
-      dispatch(fetchTopJobsRequest(20));
+      dispatch(fetchTopJobsRequest(10));
     }
   }, [dispatch]);
 

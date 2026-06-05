@@ -8,7 +8,7 @@ const UNREAD_COUNT_TTL = 30; // 30 seconds — short TTL so badge stays fresh
 export const getAllNotifications = async (request, reply) => {
   try {
     const page = parseInt(request.query.page) || 1;
-    const limit = parseInt(request.query.limit) || 20;
+    const limit = parseInt(request.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const total = await Notification.countDocuments();

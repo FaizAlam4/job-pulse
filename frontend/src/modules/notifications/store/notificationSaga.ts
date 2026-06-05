@@ -11,7 +11,7 @@ import {
 
 import { smartGet } from '@/services/apiClient';
 
-function fetchNotificationsApi(page = 1, limit = 20): Promise<any> {
+function fetchNotificationsApi(page = 1, limit = 10): Promise<any> {
   return smartGet(`/notifications?page=${page}&limit=${limit}`).then(res => res.data);
 }
 
@@ -28,7 +28,7 @@ function markAllReadApi(): Promise<any> {
 function* fetchNotificationsSaga(action: any): any {
   try {
     const page = action.payload?.page || 1;
-    const limit = action.payload?.limit || 20;
+    const limit = action.payload?.limit || 10;
     const data = yield call(fetchNotificationsApi, page, limit);
     yield put(fetchNotificationsSuccess({
       items: data.items,

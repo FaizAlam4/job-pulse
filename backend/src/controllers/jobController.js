@@ -34,7 +34,7 @@ export const getAllJobs = async (req, reply) => {
       remote,
       skills, 
       postedWithinHours, 
-      limit = 20, 
+      limit = 10, 
       page = 1,
       sortBy = 'score',
       order = 'desc'
@@ -280,12 +280,12 @@ export const getJobById = async (req, reply) => {
  * Search jobs by keyword
  * @QueryParams:
  *   - q: Search query (searches title, company, description)
- *   - limit: Number of results (default: 20, max: 100)
+ *   - limit: Number of results (default: 10, max: 100)
  *   - page: Page number (default: 1)
  */
 export const searchJobs = async (req, reply) => {
   try {
-    const { q, limit = 20, page = 1 } = req.query;
+    const { q, limit = 10, page = 1 } = req.query;
 
     if (!q || q.trim().length < 2) {
       return reply.status(400).send({
