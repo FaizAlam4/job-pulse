@@ -142,6 +142,23 @@ flowchart LR
     Fastify-->|SSE|NextJS
 ```
 
+### AI Model Fallback Chain
+
+```mermaid
+flowchart TD
+    subgraph Groq["Groq API (Free Tier)"]
+        Request[Resume Analysis Request]
+        Request --> GPT["openai/gpt-oss-120b<br/>Premium"]
+        GPT -->|429/Error| Qwen["qwen/qwen3.6-27b<br/>Standard"]
+        Qwen -->|429/Error| Scout["llama-4-scout-17b<br/>Standard"]
+        Scout -->|429/Error| Llama8B["llama-3.1-8b-instant<br/>Fallback"]
+        GPT -->|Success| Response[JSON Response]
+        Qwen -->|Success| Response
+        Scout -->|Success| Response
+        Llama8B -->|Success| Response
+    end
+```
+
 > Full architecture documentation: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ---
@@ -154,7 +171,7 @@ flowchart LR
 | **Cache-aside** over write-through | Read-heavy workload — most users browse jobs, few ingest |
 | **SHA256 deduplication** | Deterministic, fast, collision-resistant — `hash(title + company + location)` |
 | **SSE** over WebSockets | Unidirectional server→client push, simpler, HTTP/2 multiplexing compatible |
-| **Groq with fallback chain** | Free tier + automatic model fallback (`llama-3.3-70b` → `llama-4-scout` → `llama-3.1-8b`) ensures high availability |
+| **Groq with fallback chain** | Free tier + automatic model fallback (`gpt-oss-120b` → `qwen3.6-27b` → `llama-4-scout` → `llama-3.1-8b`) ensures high availability |
 | **Composite scoring** | `score = (0.6 × freshness) + (0.4 × relevance)` balances recency with keyword match |
 | **In-memory MongoDB for tests** | Zero external dependencies, parallel-safe, fast CI runs |
 
@@ -248,14 +265,14 @@ curl -X POST http://localhost:3000/resume/analyze \
   "matchedJobs": [
     { "jobId": "abc123", "title": "Senior Engineer", "company": "Acme", "matchScore": 85, "reason": "Strong Node.js overlap" }
   ],
-  "modelUsed": "llama-3.3-70b-versatile",
+  "modelUsed": "gpt-oss-120b",
   "modelTier": "premium"
 }
 ```
 
 **Provider:** Groq (free tier)
 - 30 requests/minute, 14,400/day
-- Automatic fallback: `llama-3.3-70b` → `llama-4-scout-17b` → `llama-3.1-8b`
+- Automatic fallback: `gpt-oss-120b` → `qwen3.6-27b` → `llama-4-scout-17b` → `llama-3.1-8b`
 - ~200-300 resume analyses/day on free tier
 
 **Setup:**

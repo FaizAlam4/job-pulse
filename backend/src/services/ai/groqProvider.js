@@ -21,7 +21,8 @@ if (typeof globalThis.Path2D === 'undefined') {
  * Order: Most capable → Fastest (fallback)
  * 
  * Consequences of fallback:
- * - llama-3.3-70b: Best quality analysis, detailed fixes, accurate job matching
+ * - gpt-oss-120b: Best quality analysis, detailed fixes, accurate job matching
+ * - qwen3.6-27b: Excellent quality, strong alternative to GPT OSS
  * - llama-4-scout-17b: Good quality, slightly less nuanced suggestions
  * - llama-3.1-8b: Fast but basic analysis, may miss subtle issues, simpler suggestions
  * 
@@ -35,13 +36,21 @@ if (typeof globalThis.Path2D === 'undefined') {
  * Free tier capacity (14,400 req/day):
  * - Conservative: 200 analyses/day
  * - Optimistic: 300 analyses/day
+ * 
+ * Note: llama-3.3-70b-versatile deprecated on 2026-07-05, decommissioned 2026-08-16
  */
 const MODEL_HIERARCHY = [
   {
-    id: 'llama-3.3-70b-versatile',
-    name: 'Llama 3.3 70B',
+    id: 'openai/gpt-oss-120b',
+    name: 'GPT OSS 120B',
     tier: 'premium',
-    maxTokens: 1500, // Increased: longer resume input needs more output budget
+    maxTokens: 1500,
+  },
+  {
+    id: 'qwen/qwen3.6-27b',
+    name: 'Qwen 3.6 27B',
+    tier: 'premium',
+    maxTokens: 1500,
   },
   {
     id: 'meta-llama/llama-4-scout-17b-16e-instruct',
