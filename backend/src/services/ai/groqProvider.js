@@ -22,9 +22,8 @@ if (typeof globalThis.Path2D === 'undefined') {
  * 
  * Consequences of fallback:
  * - gpt-oss-120b: Best quality analysis, detailed fixes, accurate job matching
- * - qwen3.6-27b: Excellent quality, strong alternative to GPT OSS
- * - llama-4-scout-17b: Good quality, slightly less nuanced suggestions
- * - llama-3.1-8b: Fast but basic analysis, may miss subtle issues, simpler suggestions
+ * - qwen3.8-27b: Excellent quality, strong alternative to GPT OSS
+ * - gpt-oss-20b: Good quality, slightly less nuanced suggestions
  * 
  * Fallback triggers: Rate limit (429), model overloaded, temporary unavailability
  * 
@@ -47,23 +46,17 @@ const MODEL_HIERARCHY = [
     maxTokens: 1500,
   },
   {
-    id: 'qwen/qwen3.6-27b',
-    name: 'Qwen 3.6 27B',
+    id: 'qwen/qwen3.8-27b',
+    name: 'Qwen 3.8 27B',
     tier: 'premium',
     maxTokens: 1500,
   },
   {
-    id: 'meta-llama/llama-4-scout-17b-16e-instruct',
-    name: 'Llama 4 Scout 17B',
+    id: 'openai/gpt-oss-20b',
+    name: 'GPT OSS 20B',
     tier: 'standard',
     maxTokens: 1500,
-  },
-  {
-    id: 'llama-3.1-8b-instant',
-    name: 'Llama 3.1 8B',
-    tier: 'fallback',
-    maxTokens: 1500,
-  },
+  }
 ];
 
 /**
